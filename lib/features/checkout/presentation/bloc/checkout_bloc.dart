@@ -45,6 +45,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         await _aggregationRepository.fetchParallelManifests(
           departure: "Lagos", 
           destination: "Abuja",
+          departureDate: DateTime.now().toIso8601String().substring(0, 10),
         );
     
     emit(CheckoutSelectionActive(

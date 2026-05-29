@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'core/network/api_client.dart';
 import 'features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'features/checkout/presentation/pages/search_aggregation_page.dart';
 
-void main() {
-  // Ensure native hardware, database platforms, and plugins are properly initialized
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  runApp(const ByeByeBillApp());
+  runApp(const FlipBillsApp());
 }
 
-class ByeByeBillApp extends StatelessWidget {
-  const ByeByeBillApp({super.key});
+class FlipBillsApp extends StatelessWidget {
+  const FlipBillsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Inject the CheckoutBloc stream container globally at the root of the widget tree
     return MultiBlocProvider(
       providers: [
         BlocProvider<CheckoutBloc>(
-          create: (BuildContext context) => CheckoutBloc(),
+          create: (context) => CheckoutBloc(),
         ),
       ],
       child: MaterialApp(
-        title: 'Flip Bills', // UPDATED BRAND ENTRY
+        title: 'Flip Bills',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
@@ -39,7 +37,52 @@ class ByeByeBillApp extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
         ),
-        home: const SearchAggregationPage(),
+        home: const AppEntryPoint(),
+      ),
+    );
+  }
+}
+
+// Checks login state on startup and routes accordingly
+class AppEntryPoint extends StatefulWidget {
+  const AppEntryPoint({super.key});
+
+  @override
+  State<AppEntryPoint> createState() => _AppEntryPointState();
+}
+
+class _AppEntryPointState extends State<AppEntryPoint> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final isLoggedIn = await ApiClient.instance.isLoggedIn();
+    if (mounted) {
+      if (isLoggedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SearchAggregationPage()),
+        );
+      } else {
+        // TODO: navigate to login screen when built
+        // For now go straight to main screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SearchAggregationPage()),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xff0b845c),
+      body: Center(
+        child: CircularProgressIndicator(color: Colors.white),
       ),
     );
   }

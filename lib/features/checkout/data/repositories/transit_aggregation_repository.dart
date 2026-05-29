@@ -1,72 +1,150 @@
-import 'dart:async';
+import 'dart:developer';
 import 'package:dio/dio.dart';
-import '../../../../core/network/parallel_worker_client.dart';
+import '../../../../core/network/api_client.dart';
 
 class TransitAggregationRepository {
-  final ParallelWorkerClient _networkWorker = ParallelWorkerClient();
+  final Dio _networkWorker = ApiClient.instance.dio;
 
-  /// Executes parallel worker lookups to distinct travel aggregates concurrently
   Future<List<Map<String, dynamic>>> fetchParallelManifests({
     required String departure,
     required String destination,
+    required String departureDate,
   }) async {
-    // Define independent regional transit provider mock aggregator endpoints
-    final List<String> workerEndpoints = [
-      'https://api.provider-alpha.ng/v1/manifest',
-      'https://api.provider-beta.ng/v1/availability',
-      'https://api.provider-gamma.ng/v2/fleet',
-    ];
-
-    final queryParameters = {
-      'origin': departure,
-      'destination': destination,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    };
-
-    // Spin up concurrent, non-blocking asynchronous pipeline request matrices
-    final List<Future<Response>> parallelWorkerRequests = workerEndpoints.map((endpoint) {
-      // In a live sandbox environment, swap this with real provider credentials
-      return _networkWorker.instance.get(
-        endpoint,
-        queryParameters: queryParameters,
-      ).catchError((error) {
-        // Fallback: Return a mock response if an individual endpoint times out or drops down
-        return Response(
-          requestOptions: RequestOptions(path: endpoint),
-          statusCode: 200,
-          data: {
-            "provider": endpoint.contains("alpha") ? "GIGM Aggregator" : "ABC Transport Pool",
-            "available_trips": [
-              {"vehicle_id": "V-102", "base_price": 12500.0, "seats_available": 14}
-            ]
-          },
-        );
-      });
-    }).toList();
-
     try {
-      // Core PRD execution: Await all network threads in parallel matching high-speed delivery layout needs
-      final List<Response> workerResponses = await Future.wait(parallelWorkerRequests);
+      final Response response = await _networkWorker.get(
+        '/api/v1/travel/bus/search',
+        queryParameters: {
+          'origin': departure,
+          'destination': destination,
+          'departure_date': departureDate,
+        },
+      );
 
-      final List<Map<String, dynamic>> consolidatedManifests = [];
-      for (var response in workerResponses) {
-        if (response.statusCode == 200 && response.data != null) {
-          final data = response.data as Map<String, dynamic>;
-          consolidatedManifests.add(data);
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data;
+        if (responseData is Map && responseData['data'] != null) {
+          return List<Map<String, dynamic>>.from(responseData['data']);
+        }
+        if (responseData is List) {
+          return List<Map<String, dynamic>>.from(responseData);
         }
       }
-
-      return consolidatedManifests;
+      return _getFallbackProfiles();
     } catch (e) {
-      // Absolute fallback array safety layer to avoid locking screen threads if network channels decay completely
-      return [
-        {
-          "provider": "Offline Local Cache Sync",
-          "available_trips": [
-            {"vehicle_id": "FALLBACK-01", "base_price": 12000.0, "seats_available": 16}
-          ]
-        }
-      ];
+      log('Bus search failed, using sandbox data: $e');
+      return _getFallbackProfiles();
     }
+  }
+
+  Future<bool> purchaseAirtime({
+    required String phone,
+    required int amountKobo,
+    required String network,
+  }) async {
+    try {
+      final response = await _networkWorker.post(
+        '/api/v1/vas/airtime',
+        data: {
+          'phone': phone,
+          'amount': amountKobo,
+          'network': network,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      log('Airtime purchase error: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> payElectricity({
+    required String meterNumber,
+    required int amountKobo,
+    required String disco,
+    String meterType = 'prepaid',
+  }) async {
+    try {
+      final response = await _networkWorker.post(
+        '/api/v1/vas/electricity',
+        data: {
+          'meter_number': meterNumber,
+          'disco': disco,
+          'amount': amountKobo,
+          'meter_type': meterType,
+        },
+      );
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      }
+      return null;
+    } catch (e) {
+      log('Electricity payment error: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> bookBus({
+    required String operatorCode,
+    required String vehicleRef,
+    required String seatNumber,
+    required String departureDate,
+    required String origin,
+    required String destination,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
+    try {
+      final response = await _networkWorker.post(
+        '/api/v1/travel/bus/book',
+        data: {
+          'operator_code': operatorCode,
+          'vehicle_ref': vehicleRef,
+          'seat_number': seatNumber,
+          'departure_date': departureDate,
+          'origin': origin,
+          'destination': destination,
+          'passenger': {
+            'full_name': passengerName,
+            'phone': passengerPhone,
+          },
+        },
+      );
+      if (response.statusCode == 201 && response.data != null) {
+        return Map<String, dynamic>.from(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      log('Bus booking error: $e');
+      return null;
+    }
+  }
+
+  List<Map<String, dynamic>> _getFallbackProfiles() {
+    return [
+      {
+        'operator_name': 'GIGM (Sandbox)',
+        'operator_code': 'GIGM',
+        'origin': 'Lagos',
+        'destination': 'Abuja',
+        'price_ngn': 7500.0,
+        'price_kobo': 750000,
+        'seats_available': 12,
+        'vehicle_ref': 'GIGM-BUS-0042',
+        'vehicle_class': 'executive',
+        'rating': 4.3,
+      },
+      {
+        'operator_name': 'ABC Transport (Sandbox)',
+        'operator_code': 'ABC',
+        'origin': 'Lagos',
+        'destination': 'Abuja',
+        'price_ngn': 6500.0,
+        'price_kobo': 650000,
+        'seats_available': 7,
+        'vehicle_ref': 'ABC-BUS-0017',
+        'vehicle_class': 'standard',
+        'rating': 4.0,
+      },
+    ];
   }
 }

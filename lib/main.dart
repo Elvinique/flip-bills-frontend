@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/network/api_client.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/pages/login_page.dart';
 import 'features/checkout/presentation/bloc/checkout_bloc.dart';
-import 'features/checkout/presentation/pages/search_aggregation_page.dart';
+import 'features/wallet/presentation/pages/wallet_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +19,13 @@ class FlipBillsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        // AuthBloc at root — shared across all pages so auth state
+        // (e.g. auto-logout on 401) is accessible anywhere in the tree.
+        BlocProvider<AuthBloc>(
+          create: (_) => AuthBloc(),
+        ),
         BlocProvider<CheckoutBloc>(
-          create: (context) => CheckoutBloc(),
+          create: (_) => CheckoutBloc(),
         ),
       ],
       child: MaterialApp(
@@ -28,7 +35,7 @@ class FlipBillsApp extends StatelessWidget {
           useMaterial3: true,
           colorSchemeSeed: const Color(0xff0b845c),
           textTheme: GoogleFonts.plusJakartaSansTextTheme(
-            Theme.of(context).textTheme,
+            ThemeData.light().textTheme,
           ),
           appBarTheme: const AppBarTheme(
             elevation: 0,
@@ -43,7 +50,7 @@ class FlipBillsApp extends StatelessWidget {
   }
 }
 
-// Checks login state on startup and routes accordingly
+/// Checks token on startup — routes to WalletDashboard or Login
 class AppEntryPoint extends StatefulWidget {
   const AppEntryPoint({super.key});
 
@@ -61,19 +68,14 @@ class _AppEntryPointState extends State<AppEntryPoint> {
   Future<void> _checkAuth() async {
     final isLoggedIn = await ApiClient.instance.isLoggedIn();
     if (mounted) {
-      if (isLoggedIn) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchAggregationPage()),
-        );
-      } else {
-        // TODO: navigate to login screen when built
-        // For now go straight to main screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchAggregationPage()),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => isLoggedIn
+              ? const WalletDashboardPage()
+              : const LoginPage(),
+        ),
+      );
     }
   }
 

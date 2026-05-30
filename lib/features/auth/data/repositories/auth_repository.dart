@@ -76,4 +76,19 @@ class AuthRepository {
       return false;
     }
   }
+
+  /// Calls POST /api/v1/auth/set-pin with the hashed 6-digit PIN.
+  /// Returns true on success, false on any error.
+  Future<bool> setPin({required String pin, required String confirmPin}) async {
+    try {
+      final response = await _client.dio.post('/api/v1/auth/set-pin', data: {
+        'pin': pin,
+        'confirm_pin': confirmPin,
+      });
+      return response.statusCode == 200;
+    } catch (e) {
+      log('Set PIN error: $e');
+      return false;
+    }
+  }
 }

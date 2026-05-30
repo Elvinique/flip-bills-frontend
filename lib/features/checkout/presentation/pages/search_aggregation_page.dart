@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../bloc/checkout_bloc.dart';
 import '../bloc/checkout_state.dart';
 import '../../data/repositories/transit_aggregation_repository.dart';
+import '../../../../../features/wallet/data/repositories/wallet_repository.dart';
 import '../widgets/bus_seat_grid.dart';
 import '../widgets/contextual_checkout_sheet.dart';
 import '../widgets/offline_ticket_pass_card.dart';
@@ -19,14 +20,31 @@ class _SearchAggregationPageState extends State<SearchAggregationPage> {
   final TextEditingController _toController = TextEditingController(text: 'Abuja');
   final TransitAggregationRepository _vasRepo = TransitAggregationRepository();
   DateTime _travelDate = DateTime.now();
-  double _walletBalance = 24500.00;
+  double _walletBalance = 0.00;
 
   @override
   void dispose() {
     _toController.dispose();
     super.dispose();
   }
+final WalletRepository _walletRepo = WalletRepository();
 
+@override
+void initState() {
+  super.initState();
+  _loadWalletBalance();
+}
+
+Future<void> _loadWalletBalance() async {
+  final data = await _walletRepo.getBalance();
+  if (data != null && mounted) {
+    setState(() {
+      _walletBalance = (data['balance_ngn'] as num).toDouble();
+    });
+  } else {
+
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +65,9 @@ class _SearchAggregationPageState extends State<SearchAggregationPage> {
       ),
       body: BlocConsumer<CheckoutBloc, CheckoutState>(
         listener: (context, state) {
-          if (state is CheckoutFailureReversal) {
+          if (state is CheckoutSuccess) {
+            _showBookingConfirmation(context, state);
+          } else if (state is CheckoutFailureReversal) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -116,7 +136,11 @@ class _SearchAggregationPageState extends State<SearchAggregationPage> {
                                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
                                   builder: (_) => BlocProvider.value(
                                     value: context.read<CheckoutBloc>(),
-                                    child: ContextualCheckoutSheet(destinationBoundary: _toController.text, baseSeatPrice: 12000.0, selectedSeats: state.selectedSeats),
+                                    child: ContextualCheckoutSheet(
+                                      destinationBoundary: _toController.text,
+                                      baseSeatPrice: ((state.selectedManifest?['price_ngn'] as num?) ?? 12000.0).toDouble(),
+                                      selectedSeats: state.selectedSeats,
+                                    ),
                                   ),
                                 );
                               },
@@ -407,6 +431,89 @@ class _SearchAggregationPageState extends State<SearchAggregationPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xff0b845c))),
+    );
+  }
+
+  void _showBookingConfirmation(BuildContext context, CheckoutSuccess state) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.white,
+      builder: (_) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle_outline_rounded,
+                  color: Color(0xff0b845c), size: 56),
+              const SizedBox(height: 12),
+              Text('Booking Confirmed!',
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 20, fontWeight: FontWeight.w900,
+                      color: const Color(0xff0d1b16))),
+              const SizedBox(height: 4),
+              Text(state.operatorName,
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13, color: const Color(0xff6b8078))),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200)),
+                child: Column(
+                  children: [
+                    _receiptRow('Route',
+                        '\${state.origin} → \${state.destination}'),
+                    _receiptRow('Date', state.departureDate),
+                    _receiptRow('Seats', state.seats.join(', ')),
+                    _receiptRow('Booking ID', state.bookingId),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff0b845c),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Done',
+                      style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.bold)),
+          Text(value,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xff0d1b16),
+                  fontWeight: FontWeight.w900)),
+        ],
+      ),
     );
   }
 

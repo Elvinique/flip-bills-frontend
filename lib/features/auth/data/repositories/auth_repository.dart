@@ -11,8 +11,9 @@ class AuthRepository {
     required String lastName,
   }) async {
     try {
+      final e164Phone = phone.startsWith('+') ? phone : '+234' + (phone.startsWith('0') ? phone.substring(1) : phone);
       final response = await _client.dio.post('/api/v1/auth/register', data: {
-        'phone': phone,
+        'phone': e164Phone,
         'password': password,
         'first_name': firstName,
         'last_name': lastName,
@@ -29,8 +30,9 @@ class AuthRepository {
     required String password,
   }) async {
     try {
+      final e164Phone = phone.startsWith('+') ? phone : '+234' + (phone.startsWith('0') ? phone.substring(1) : phone);
       final response = await _client.dio.post('/api/v1/auth/login', data: {
-        'phone': phone,
+        'phone': e164Phone,
         'password': password,
       });
 

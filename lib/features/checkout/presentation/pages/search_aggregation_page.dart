@@ -54,7 +54,7 @@ Future<void> _loadWalletBalance() async {
         elevation: 0,
         title: Text(
           'Flip Bills',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 22),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 22),
         ),
         actions: [
           IconButton(
@@ -90,11 +90,11 @@ Future<void> _loadWalletBalance() async {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 12),
-                      Text("Fintech Bill Utilities", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
+                      Text("Fintech Bill Utilities", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
                       const SizedBox(height: 12),
                       _buildVasServiceGrid(),
                       const SizedBox(height: 28),
-                      Text("Book Inter-State Travel", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
+                      Text("Book Inter-State Travel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
                       const SizedBox(height: 12),
                       _buildSearchFormCard(),
                       const SizedBox(height: 24),
@@ -113,7 +113,7 @@ Future<void> _loadWalletBalance() async {
                       ],
 
                       if (state is CheckoutSelectionActive) ...[
-                        Text("Select Seats (Click 2)", style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold)),
+                        Text("Select Seats (Click 2)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 10),
                         SizedBox(
                           height: 200,
@@ -192,16 +192,16 @@ Future<void> _loadWalletBalance() async {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("WALLET BALANCE", style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0)),
+                  Text("WALLET BALANCE", style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(20)),
-                    child: Text("Active Secure", style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: Text("Active Secure", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text("₦${_walletBalance.toStringAsFixed(2)}", style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+              Text("₦${_walletBalance.toStringAsFixed(2)}", style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
             ],
           ),
         ),
@@ -232,7 +232,7 @@ Future<void> _loadWalletBalance() async {
               border: Border.all(color: s['borderColor'], width: 1.5),
             ),
             alignment: Alignment.center,
-            child: Text(s['title'], style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
+            child: Text(s['title'], style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
           ),
         );
       },
@@ -262,8 +262,8 @@ Future<void> _loadWalletBalance() async {
               padding: EdgeInsets.only(left: 10.0),
               child: Icon(Icons.calendar_month_rounded, color: Colors.blueAccent),
             ),
-            title: Text("Departure Date", style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
-            subtitle: Text("${_travelDate.day}/${_travelDate.month}/${_travelDate.year}", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
+            title: Text("Departure Date", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
+            subtitle: Text("${_travelDate.day}/${_travelDate.month}/${_travelDate.year}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
             onTap: () async {
               DateTime? picked = await showDatePicker(context: context, initialDate: _travelDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 60)));
               if (picked != null) setState(() => _travelDate = picked);
@@ -294,10 +294,10 @@ Future<void> _loadWalletBalance() async {
                 children: [
                   Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)))),
                   const SizedBox(height: 18),
-                  Text("Airtime Top-Up", style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w900)),
+                  Text("Airtime Top-Up", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 18),
                   
-                  Text("SELECT NETWORK OPERATOR", style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  Text("SELECT NETWORK OPERATOR", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -380,7 +380,7 @@ Future<void> _loadWalletBalance() async {
             children: [
               Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)))),
               const SizedBox(height: 18),
-              Text("Prepaid Utility Settlement", style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w900)),
+              Text("Prepaid Utility Settlement", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               const SizedBox(height: 18),
               TextField(controller: meterCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: "Meter Number", hintText: "Enter 11-digit number", border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
               const SizedBox(height: 14),
@@ -534,9 +534,9 @@ Future<void> _loadWalletBalance() async {
                 size: 54,
               ),
               const SizedBox(height: 12),
-              Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xff1a1d20))),
+              Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xff1a1d20))),
               const SizedBox(height: 4),
-              Text(sub, textAlign: TextAlign.center, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+              Text(sub, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -548,8 +548,8 @@ Future<void> _loadWalletBalance() async {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(entry.key, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
-                          Text(entry.value, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xff1a1d20), fontWeight: FontWeight.w900)),
+                          Text(entry.key, style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.bold)),
+                          Text(entry.value, style: TextStyle(fontSize: 12, color: const Color(0xff1a1d20), fontWeight: FontWeight.w900)),
                         ],
                       ),
                     );

@@ -58,7 +58,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
     final error = _validate();
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(error, style: GoogleFonts.plusJakartaSans()),
+        content: Text(error, style: TextStyle()),
         backgroundColor: Colors.orange.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -113,7 +113,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Authentication error. Please try again.',
-              style: GoogleFonts.plusJakartaSans()),
+              style: TextStyle()),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -167,7 +167,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
             Text(
               '${widget.selectedSeats.length} seat${widget.selectedSeats.length > 1 ? 's' : ''} · '
               'Seats ${widget.selectedSeats.join(', ')}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _muted),
+              style: TextStyle(fontSize: 12, color: _muted),
             ),
             const SizedBox(height: 20),
 
@@ -282,7 +282,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
             fontSize: 15, fontWeight: FontWeight.w500, color: _ink),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: GoogleFonts.plusJakartaSans(color: _muted, fontSize: 14),
+          hintStyle: TextStyle(color: _muted, fontSize: 14),
           prefixIcon: Icon(icon, size: 20, color: _muted),
           filled: true,
           fillColor: _greenLight,

@@ -88,7 +88,7 @@ class VasResultSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xffe1f5ee),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _brand.withOpacity(0.3)),
+                border: Border.all(color: _brand.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +97,7 @@ class VasResultSheet extends StatelessWidget {
                     'Prepaid token',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: _brand.withOpacity(0.7),
+                      color: _brand.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

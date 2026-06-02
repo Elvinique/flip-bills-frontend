@@ -1,4 +1,4 @@
-package com.example.flip_bills
+package com.flipbills.app
 
 import io.flutter.embedding.android.FlutterActivity
 

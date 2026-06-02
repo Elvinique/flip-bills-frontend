@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -51,9 +52,17 @@ class AuthResendOTPRequested extends AuthEvent {
 class AuthSetPINRequested extends AuthEvent {
   final String pin;
   final String confirmPin;
-  const AuthSetPINRequested({required this.pin, required this.confirmPin});
+  /// Phone and password passed directly from registration — no storage needed.
+  final String phone;
+  final String password;
+  const AuthSetPINRequested({
+    required this.pin,
+    required this.confirmPin,
+    required this.phone,
+    required this.password,
+  });
   @override
-  List<Object?> get props => [pin, confirmPin];
+  List<Object?> get props => [pin, confirmPin, phone, password];
 }
 
 class AuthReset extends AuthEvent {}
@@ -67,7 +76,6 @@ abstract class AuthState extends Equatable {
 }
 
 class AuthInitial extends AuthState {}
-
 class AuthLoading extends AuthState {}
 
 class AuthLoginSuccess extends AuthState {
@@ -77,17 +85,18 @@ class AuthLoginSuccess extends AuthState {
   List<Object?> get props => [phone];
 }
 
+/// Carries phone + password so PINSetupPage can receive them and pass
+/// them back in AuthSetPINRequested without touching storage.
 class AuthRegisterSuccess extends AuthState {
   final String phone;
-  const AuthRegisterSuccess({required this.phone});
+  final String password;
+  const AuthRegisterSuccess({required this.phone, required this.password});
   @override
-  List<Object?> get props => [phone];
+  List<Object?> get props => [phone, password];
 }
 
 class AuthOTPVerified extends AuthState {}
-
 class AuthOTPResent extends AuthState {}
-
 class AuthPINSet extends AuthState {}
 
 class AuthFailure extends AuthState {
@@ -115,7 +124,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     final result = await _repo.login(phone: event.phone, password: event.password);
     if (result != null && result['data'] != null) {
-      emit(AuthLoginSuccess(phone: event.phone));
+      final e164 = _toE164(event.phone);
+      emit(AuthLoginSuccess(phone: e164));
     } else {
       final msg = result?['message'] ?? 'Login failed. Check your credentials.';
       emit(AuthFailure(message: msg));
@@ -124,16 +134,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onRegister(AuthRegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+    final e164 = _toE164(event.phone);
+
     final result = await _repo.register(
       phone: event.phone,
       password: event.password,
       firstName: event.firstName,
       lastName: event.lastName,
     );
-    if (result != null) {
-      emit(AuthRegisterSuccess(phone: event.phone));
+
+    if (result != null && result['success'] == true) {
+      // Auto-login immediately so the JWT is in memory for set-pin
+      final loginResult = await _repo.login(phone: event.phone, password: event.password);
+      if (loginResult != null && loginResult['data'] != null) {
+        log('Auto-login after register succeeded — token in memory');
+      } else {
+        log('Auto-login after register failed — PIN will use phone fallback');
+      }
+      // Always proceed to PIN setup; pass credentials directly
+      emit(AuthRegisterSuccess(phone: e164, password: event.password));
     } else {
-      emit(const AuthFailure(message: 'Registration failed. Try again.'));
+      final msg = result?['message'] ?? 'Registration failed. Try again.';
+      emit(AuthFailure(message: msg));
     }
   }
 
@@ -154,11 +176,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSetPIN(AuthSetPINRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    final ok = await _repo.setPin(pin: event.pin, confirmPin: event.confirmPin);
+    log('SetPIN — phone=${event.phone}');
+    final ok = await _repo.setPin(
+      pin: event.pin,
+      confirmPin: event.confirmPin,
+      phone: event.phone,
+      password: event.password,
+    );
     if (ok) {
       emit(AuthPINSet());
     } else {
       emit(const AuthFailure(message: 'Failed to set PIN. Please try again.'));
     }
+  }
+
+  String _toE164(String phone) {
+    if (phone.startsWith('+')) return phone;
+    if (phone.startsWith('0')) return '+234${phone.substring(1)}';
+    return '+234$phone';
   }
 }

@@ -33,7 +33,7 @@ class _VasHubView extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Services',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
         backgroundColor: _brand,
         foregroundColor: Colors.white,
@@ -135,7 +135,7 @@ class _CatalogGrid extends StatelessWidget {
           child: Text(
             'What would you like to pay for?',
             style: GoogleFonts.plusJakartaSans(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 14,
             ),
           ),

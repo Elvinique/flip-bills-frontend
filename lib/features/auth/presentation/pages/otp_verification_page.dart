@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/auth_bloc.dart';
-import 'pin_setup_page.dart';
-import '../../../../features/checkout/presentation/pages/search_aggregation_page.dart';
+import '../../../../features/wallet/presentation/pages/wallet_dashboard_page.dart';
+
 
 class OTPVerificationPage extends StatefulWidget {
   final String phone;
@@ -25,6 +25,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
   final List<TextEditingController> _ctrls = List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
+  late AuthBloc _authBloc;
   int _resendCooldown = 60;
   Timer? _timer;
   late AnimationController _shakeCtrl;
@@ -35,6 +36,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
   @override
   void initState() {
     super.initState();
+    _authBloc = AuthBloc();
     _startCooldown();
 
     _shakeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
@@ -55,6 +57,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
     for (final c in _ctrls) c.dispose();
     for (final f in _focusNodes) f.dispose();
     _shakeCtrl.dispose();
+    _authBloc.close();
     _successCtrl.dispose();
     super.dispose();
   }
@@ -92,7 +95,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
 
   void _submit() {
     if (_otp.length < 6) return;
-    context.read<AuthBloc>().add(AuthVerifyOTPRequested(phone: widget.phone, otp: _otp));
+    _authBloc.add(AuthVerifyOTPRequested(phone: widget.phone, otp: _otp));
   }
 
   void _triggerShake() {
@@ -104,8 +107,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthBloc(),
+    return BlocProvider<AuthBloc>(
+      create: (_) => _authBloc,
       child: _OTPView(
         phone: widget.phone,
         isPostRegister: widget.isPostRegister,
@@ -119,7 +122,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> with TickerPr
         onSubmit: _submit,
         onResend: () {
           _startCooldown();
-          context.read<AuthBloc>().add(AuthResendOTPRequested(phone: widget.phone));
+          _authBloc.add(AuthResendOTPRequested(phone: widget.phone));
         },
         onShake: _triggerShake,
         successCtrl: _successCtrl,
@@ -175,17 +178,13 @@ class _OTPView extends StatelessWidget {
         if (state is AuthOTPVerified) {
           successCtrl.forward();
           Future.delayed(const Duration(milliseconds: 700), () {
-            if (isPostRegister) {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PINSetupPage()));
-            } else {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SearchAggregationPage()));
-            }
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const WalletDashboardPage()));
           });
         } else if (state is AuthFailure) {
           onShake();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message, style: GoogleFonts.plusJakartaSans()),
+              content: Text(state.message, style: TextStyle()),
               backgroundColor: Colors.red.shade700,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -194,7 +193,7 @@ class _OTPView extends StatelessWidget {
         } else if (state is AuthOTPResent) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('OTP resent to ${_maskedPhone(phone)}', style: GoogleFonts.plusJakartaSans()),
+              content: Text('OTP resent to ${_maskedPhone(phone)}', style: TextStyle()),
               backgroundColor: _green,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -235,7 +234,7 @@ class _OTPView extends StatelessWidget {
                       icon: Container(
                         width: 38, height: 38,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
@@ -248,10 +247,10 @@ class _OTPView extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const SizedBox(height: 4),
                       Text('Verify your number',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
                       const SizedBox(height: 4),
                       Text('Code sent to ${_maskedPhone(phone)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Colors.white.withOpacity(0.75))),
+                        style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.75))),
                     ]),
                   ),
 
@@ -306,13 +305,13 @@ class _OTPView extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _green,
                                   foregroundColor: Colors.white,
-                                  disabledBackgroundColor: _green.withOpacity(0.6),
+                                  disabledBackgroundColor: _green.withValues(alpha: 0.6),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   elevation: 0,
                                 ),
                                 child: loading
                                   ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                  : Text('Verify', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16)),
+                                  : Text('Verify', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                               ),
                             );
                           },
@@ -325,11 +324,11 @@ class _OTPView extends StatelessWidget {
                           ? RichText(
                               text: TextSpan(
                                 text: 'Resend code in ',
-                                style: GoogleFonts.plusJakartaSans(color: _muted, fontSize: 14),
+                                style: TextStyle(color: _muted, fontSize: 14),
                                 children: [
                                   TextSpan(
                                     text: '${resendCooldown}s',
-                                    style: GoogleFonts.plusJakartaSans(color: _green, fontWeight: FontWeight.w700),
+                                    style: TextStyle(color: _green, fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),
@@ -356,7 +355,7 @@ class _OTPView extends StatelessWidget {
 
   Widget _circle(double size, double opacity) => Container(
     width: size, height: size,
-    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(opacity)),
+    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: opacity)),
   );
 }
 

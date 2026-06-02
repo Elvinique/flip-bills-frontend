@@ -96,7 +96,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
         appBar: AppBar(
           title: Text(
             'Pay electricity',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+            style: TextStyle(fontWeight: FontWeight.w700),
           ),
           backgroundColor: _brand,
           foregroundColor: Colors.white,
@@ -128,7 +128,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
                             boxShadow: active
                                 ? [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.06),
+                                      color: Colors.black.withValues(alpha: 0.06),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     )
@@ -307,11 +307,11 @@ class _ElectricityPageState extends State<ElectricityPage> {
           keyboardType: type,
           inputFormatters: formatters,
           onChanged: onChanged,
-          style: GoogleFonts.plusJakartaSans(fontSize: 15),
+          style: TextStyle(fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle:
-                GoogleFonts.plusJakartaSans(color: Colors.grey.shade400),
+                TextStyle(color: Colors.grey.shade400),
             prefixText: prefix,
             prefixStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 15, fontWeight: FontWeight.w600),

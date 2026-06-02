@@ -90,7 +90,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
           if (state is WalletError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(state.message,
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white)),
+                  style: TextStyle(color: Colors.white)),
               backgroundColor: Colors.red.shade700,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -173,7 +173,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
             onTap: () => _showProfileMenu(context),
             child: CircleAvatar(
               radius: 17,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               child: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 20),
             ),
           ),
@@ -203,7 +203,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: _brand.withOpacity(0.35),
+            color: _brand.withValues(alpha: 0.35),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -220,7 +220,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
               height: 130,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
               ),
             ),
           ),
@@ -232,7 +232,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
               ),
             ),
           ),
@@ -247,7 +247,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                     Text(
                       'Wallet Balance',
                       style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white.withOpacity(0.75),
+                        color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.3,
@@ -268,7 +268,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                           width: 180,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -290,7 +290,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                         _balanceVisible
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         size: 22,
                       ),
                       onPressed: () => setState(() => _balanceVisible = !_balanceVisible),
@@ -308,7 +308,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                         Text(
                           'Daily spend',
                           style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
@@ -316,7 +316,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                         Text(
                           '${_formatNgn(dailySpent)} / ${_formatNgn(dailyLimit)}',
                           style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white.withOpacity(0.75),
+                            color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -328,7 +328,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: isLoading ? null : progress,
-                        backgroundColor: Colors.white.withOpacity(0.15),
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           progress > 0.8 ? Colors.orangeAccent : Colors.white,
                         ),
@@ -344,9 +344,9 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
+                        color: Colors.white.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -543,7 +543,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
         'Payment link ready. Ref: ${state.reference}',
-        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+        style: TextStyle(color: Colors.white),
       ),
       backgroundColor: _brand,
       behavior: SnackBarBehavior.floating,
@@ -610,7 +610,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   void _comingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('$feature coming soon!',
-          style: GoogleFonts.plusJakartaSans(color: Colors.white)),
+          style: TextStyle(color: Colors.white)),
       backgroundColor: const Color(0xff333333),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -634,9 +634,9 @@ class _TierBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Text(
         label,
@@ -665,7 +665,7 @@ class _FundButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -717,7 +717,7 @@ class _QuickActionTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -730,7 +730,7 @@ class _QuickActionTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: action.color.withOpacity(0.1),
+                color: action.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(action.icon, color: action.color, size: 22),
@@ -813,7 +813,7 @@ class _TransactionTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -825,7 +825,7 @@ class _TransactionTile extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(_iconFor(type), color: color, size: 20),
@@ -1009,9 +1009,9 @@ class _FundingSheetState extends State<_FundingSheet> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
-                    color: _brand.withOpacity(0.08),
+                    color: _brand.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _brand.withOpacity(0.2)),
+                    border: Border.all(color: _brand.withValues(alpha: 0.2)),
                   ),
                   child: Text(
                     '₦${amt ~/ 1000}k',
@@ -1064,7 +1064,7 @@ class _FundingSheetState extends State<_FundingSheet> {
                 if (amount == null || amount < 100) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text('Minimum amount is ₦100',
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white)),
+                        style: TextStyle(color: Colors.white)),
                     backgroundColor: Colors.red.shade700,
                   ));
                   return;

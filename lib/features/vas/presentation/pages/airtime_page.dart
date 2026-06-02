@@ -94,7 +94,7 @@ class _AirtimePageState extends State<AirtimePage> {
         appBar: AppBar(
           title: Text(
             'Buy airtime',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+            style: TextStyle(fontWeight: FontWeight.w700),
           ),
           backgroundColor: _brand,
           foregroundColor: Colors.white,
@@ -264,10 +264,10 @@ class _InputField extends StatelessWidget {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         onChanged: onChanged,
-        style: GoogleFonts.plusJakartaSans(fontSize: 15),
+        style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey.shade400),
+          hintStyle: TextStyle(color: Colors.grey.shade400),
           prefixText: prefix,
           prefixStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
@@ -314,7 +314,7 @@ class _NetworkSelector extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected ? color.withOpacity(0.12) : Colors.white,
+                color: isSelected ? color.withValues(alpha: 0.12) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected ? color : Colors.grey.shade200,

@@ -103,7 +103,7 @@ class _BusSeatGridState extends State<BusSeatGrid> {
           ),
         ),
         const SizedBox(width: 8),
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xff495057))),
+        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xff495057))),
       ],
     );
   }
@@ -139,7 +139,7 @@ class _BusSeatGridState extends State<BusSeatGrid> {
     Color itemBorder = const Color(0xff0b845c);
     Widget labelWidget = Text(
       '$seatIndex',
-      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, color: const Color(0xff0b845c), fontSize: 13),
+      style: TextStyle(fontWeight: FontWeight.w700, color: const Color(0xff0b845c), fontSize: 13),
     );
 
     if (isOccupied) {
@@ -151,7 +151,7 @@ class _BusSeatGridState extends State<BusSeatGrid> {
       itemBorder = const Color(0xff086345);
       labelWidget = Text(
         '$seatIndex',
-        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
+        style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
       );
     }
 

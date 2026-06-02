@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/auth_bloc.dart';
-import 'otp_verification_page.dart';
+import 'pin_setup_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -55,7 +55,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: GoogleFonts.plusJakartaSans()),
+        content: Text(msg, style: TextStyle()),
         backgroundColor: Colors.orange.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -73,7 +73,10 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => OTPVerificationPage(phone: state.phone, isPostRegister: true),
+                builder: (_) => PINSetupPage(
+                  phone: state.phone,
+                  password: state.password,
+                ),
               ),
             );
           } else if (state is AuthFailure) {
@@ -123,7 +126,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                         icon: Container(
                           width: 38, height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
@@ -143,7 +146,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                           const SizedBox(height: 4),
                           Text(_currentStep == 0 ? 'Start with your name' : 'Set your login details',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13, color: Colors.white.withOpacity(0.75))),
+                              fontSize: 13, color: Colors.white.withValues(alpha: 0.75))),
                         ],
                       ),
                     ),
@@ -243,7 +246,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
           TextFormField(
             controller: _passwordCtrl,
             obscureText: _obscurePassword,
-            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(0xff0d1b16)),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(0xff0d1b16)),
             decoration: _inputDeco(
               hint: '••••••••',
               icon: Icons.lock_outline_rounded,
@@ -258,7 +261,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
           ),
           const SizedBox(height: 8),
           Text('Minimum 8 characters',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xff6b8078))),
+            style: TextStyle(fontSize: 12, color: const Color(0xff6b8078))),
           const SizedBox(height: 32),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
@@ -280,13 +283,13 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff0b845c),
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xff0b845c).withOpacity(0.6),
+                    disabledBackgroundColor: const Color(0xff0b845c).withValues(alpha: 0.6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
                   child: loading
                     ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                    : Text('Create Account', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16)),
+                    : Text('Create Account', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 ),
               );
             },
@@ -307,12 +310,12 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
       ),
-      child: Text('Continue', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16)),
+      child: Text('Continue', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
     ),
   );
 
   Widget _label(String text) => Text(text,
-    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xff0d1b16)));
+    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xff0d1b16)));
 
   Widget _textField({
     required TextEditingController controller,
@@ -324,13 +327,13 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     controller: controller,
     keyboardType: keyboardType,
     inputFormatters: formatters,
-    style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(0xff0d1b16)),
+    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: const Color(0xff0d1b16)),
     decoration: _inputDeco(hint: hint, icon: icon),
   );
 
   InputDecoration _inputDeco({required String hint, required IconData icon, Widget? suffix}) => InputDecoration(
     hintText: hint,
-    hintStyle: GoogleFonts.plusJakartaSans(color: const Color(0xff6b8078), fontSize: 14),
+    hintStyle: TextStyle(color: const Color(0xff6b8078), fontSize: 14),
     prefixIcon: Icon(icon, size: 20, color: const Color(0xff6b8078)),
     suffixIcon: suffix != null ? Padding(padding: const EdgeInsets.only(right: 4), child: suffix) : null,
     filled: true,
@@ -346,6 +349,6 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
   Widget _circle(double size, double opacity) => Container(
     width: size, height: size,
     decoration: BoxDecoration(shape: BoxShape.circle,
-      color: Colors.white.withOpacity(opacity)),
+      color: Colors.white.withValues(alpha: opacity)),
   );
 }

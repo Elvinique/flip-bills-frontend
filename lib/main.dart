@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'core/network/api_client.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -34,9 +34,6 @@ class FlipBillsApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: const Color(0xff0b845c),
-          textTheme: GoogleFonts.plusJakartaSansTextTheme(
-            ThemeData.light().textTheme,
-          ),
           appBarTheme: const AppBarTheme(
             elevation: 0,
             centerTitle: false,

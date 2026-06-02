@@ -96,7 +96,7 @@ class _DataPageState extends State<DataPage> {
         appBar: AppBar(
           title: Text(
             'Buy data',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+            style: TextStyle(fontWeight: FontWeight.w700),
           ),
           backgroundColor: _brand,
           foregroundColor: Colors.white,
@@ -159,7 +159,7 @@ class _DataPageState extends State<DataPage> {
               if (_filteredPlans.isEmpty)
                 Text(
                   'No plans available for this network.',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+                  style: TextStyle(color: Colors.grey),
                 )
               else
                 GridView.builder(
@@ -181,7 +181,7 @@ class _DataPageState extends State<DataPage> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: selected
-                              ? _brand.withOpacity(0.08)
+                              ? _brand.withValues(alpha: 0.08)
                               : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
@@ -292,10 +292,10 @@ class _DataPageState extends State<DataPage> {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(11),
           ],
-          style: GoogleFonts.plusJakartaSans(fontSize: 15),
+          style: TextStyle(fontSize: 15),
           decoration: InputDecoration(
             hintText: '08012345678',
-            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey.shade400),
+            hintStyle: TextStyle(color: Colors.grey.shade400),
             border: InputBorder.none,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

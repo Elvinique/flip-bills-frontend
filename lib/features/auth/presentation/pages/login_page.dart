@@ -94,7 +94,7 @@ class _LoginView extends StatelessWidget {
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message, style: GoogleFonts.plusJakartaSans()),
+              content: Text(state.message, style: TextStyle()),
               backgroundColor: Colors.red.shade700,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -124,15 +124,15 @@ class _LoginView extends StatelessWidget {
                     Positioned(top: -30, right: -30,
                       child: Container(width: 150, height: 150,
                         decoration: BoxDecoration(shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.08), width: 30)))),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 30)))),
                     Positioned(top: 60, right: 40,
                       child: Container(width: 70, height: 70,
                         decoration: BoxDecoration(shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.06)))),
+                          color: Colors.white.withValues(alpha: 0.06)))),
                     Positioned(bottom: 20, left: -20,
                       child: Container(width: 100, height: 100,
                         decoration: BoxDecoration(shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.06), width: 20)))),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.06), width: 20)))),
                   ],
                 ),
               ),
@@ -156,17 +156,17 @@ class _LoginView extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 4))],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 20, offset: const Offset(0, 4))],
                           ),
                           child: const Icon(Icons.bolt_rounded, color: _green, size: 30),
                         ),
                         const SizedBox(height: 20),
 
                         Text('Welcome back',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1)),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1)),
                         const SizedBox(height: 6),
                         Text('Sign in to your Flip Bills account',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, color: Colors.white.withOpacity(0.75))),
+                          style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.75))),
 
                         const SizedBox(height: 80),
 
@@ -176,7 +176,7 @@ class _LoginView extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 40, offset: const Offset(0, 8))],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 40, offset: const Offset(0, 8))],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +195,7 @@ class _LoginView extends StatelessWidget {
                                   onPressed: () {},
                                   style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                                   child: Text('Forgot password?',
-                                    style: GoogleFonts.plusJakartaSans(color: _green, fontWeight: FontWeight.w600, fontSize: 13)),
+                                    style: TextStyle(color: _green, fontWeight: FontWeight.w600, fontSize: 13)),
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -211,7 +211,7 @@ class _LoginView extends StatelessWidget {
                           Expanded(child: Divider(color: Colors.grey.shade200)),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('or', style: GoogleFonts.plusJakartaSans(color: _muted, fontSize: 13)),
+                            child: Text('or', style: TextStyle(color: _muted, fontSize: 13)),
                           ),
                           Expanded(child: Divider(color: Colors.grey.shade200)),
                         ]),
@@ -225,7 +225,7 @@ class _LoginView extends StatelessWidget {
                             child: RichText(
                               text: TextSpan(
                                 text: "Don't have an account? ",
-                                style: GoogleFonts.plusJakartaSans(color: _muted, fontSize: 14),
+                                style: TextStyle(color: _muted, fontSize: 14),
                                 children: [
                                   TextSpan(
                                     text: 'Create one',
@@ -253,13 +253,13 @@ class _LoginView extends StatelessWidget {
   }
 
   Widget _label(String text) => Text(text,
-    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: _ink));
+    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _ink));
 
   Widget _phoneField() => TextFormField(
     controller: phoneCtrl,
     keyboardType: TextInputType.phone,
     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-    style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w500, color: _ink),
+    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: _ink),
     decoration: _inputDecoration(
       hint: '08012345678',
       prefixIcon: const Icon(Icons.phone_outlined, size: 20, color: _muted),
@@ -269,7 +269,7 @@ class _LoginView extends StatelessWidget {
   Widget _passwordField() => TextFormField(
     controller: passwordCtrl,
     obscureText: obscurePassword,
-    style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w500, color: _ink),
+    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: _ink),
     decoration: _inputDecoration(
       hint: '••••••••',
       prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: _muted),
@@ -286,7 +286,7 @@ class _LoginView extends StatelessWidget {
     Widget? suffixIcon,
   }) => InputDecoration(
     hintText: hint,
-    hintStyle: GoogleFonts.plusJakartaSans(color: _muted, fontSize: 14),
+    hintStyle: TextStyle(color: _muted, fontSize: 14),
     prefixIcon: prefixIcon,
     suffixIcon: suffixIcon != null ? Padding(padding: const EdgeInsets.only(right: 4), child: suffixIcon) : null,
     filled: true,
@@ -320,7 +320,7 @@ class _LoginButton extends StatelessWidget {
               final pass = passwordCtrl.text.trim();
               if (phone.isEmpty || pass.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Please fill in all fields', style: GoogleFonts.plusJakartaSans()),
+                  SnackBar(content: Text('Please fill in all fields', style: TextStyle()),
                     backgroundColor: Colors.orange.shade700, behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 );
@@ -331,13 +331,13 @@ class _LoginButton extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xff0b845c),
               foregroundColor: Colors.white,
-              disabledBackgroundColor: const Color(0xff0b845c).withOpacity(0.6),
+              disabledBackgroundColor: const Color(0xff0b845c).withValues(alpha: 0.6),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
             ),
             child: isLoading
               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-              : Text('Sign In', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16)),
+              : Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           ),
         );
       },

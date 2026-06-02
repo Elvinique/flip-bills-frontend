@@ -43,7 +43,7 @@ class OfflineTicketPassCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             "Your digital boarding pass has been decrypted from your device enclave secure cache. Present the pass token below to the terminal conductor.",
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.black87, height: 1.4),
+            style: TextStyle(fontSize: 11, color: Colors.black87, height: 1.4),
           ),
           const Divider(height: 24, color: Color(0xffffe066)),
           Row(

@@ -34,18 +34,15 @@ class AuthRepository {
     required String password,
     required String firstName,
     required String lastName,
-    String dateOfBirth = '',
   }) async {
     try {
       final e164 = _toE164(phone);
-      final payload = <String, dynamic>{
+      final response = await _client.dio.post('/api/v1/auth/register', data: {
         'phone': e164,
         'password': password,
         'first_name': firstName,
         'last_name': lastName,
-      };
-      if (dateOfBirth.isNotEmpty) payload['date_of_birth'] = dateOfBirth;
-      final response = await _client.dio.post('/api/v1/auth/register', data: payload);
+      });
       // Backend returns 201 with {"success": true, "message": "..."}
       final body = response.data as Map<String, dynamic>? ?? {};
       return {'success': body['success'] == true, 'message': body['message'] ?? 'Registration successful.'};

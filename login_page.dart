@@ -69,13 +69,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           if (state is AuthLoginSuccess) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (_) => WalletDashboardPage(
-                  initialFirstName: state.firstName,
-                  initialLastName: state.lastName,
-                  initialPhone: state.phone,
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => const WalletDashboardPage()),
             );
           } else if (state is AuthFailure) {
             _showSnack(state.message, isError: true);

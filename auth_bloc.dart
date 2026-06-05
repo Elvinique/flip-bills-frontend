@@ -24,16 +24,29 @@ class AuthRegisterRequested extends AuthEvent {
   final String password;
   final String firstName;
   final String lastName;
-  final String dateOfBirth;
   const AuthRegisterRequested({
     required this.phone,
     required this.password,
     required this.firstName,
     required this.lastName,
-    required this.dateOfBirth,
   });
   @override
-  List<Object?> get props => [phone, password, firstName, lastName, dateOfBirth];
+  List<Object?> get props => [phone, password, firstName, lastName];
+}
+
+class AuthSetPINRequested extends AuthEvent {
+  final String pin;
+  final String confirmPin;
+  final String phone;
+  final String password;
+  const AuthSetPINRequested({
+    required this.pin,
+    required this.confirmPin,
+    required this.phone,
+    required this.password,
+  });
+  @override
+  List<Object?> get props => [pin, confirmPin, phone, password];
 }
 
 class AuthReset extends AuthEvent {}
@@ -51,31 +64,22 @@ class AuthLoading extends AuthState {}
 
 class AuthLoginSuccess extends AuthState {
   final String phone;
-  final String firstName;
-  final String lastName;
-  const AuthLoginSuccess({
-    required this.phone,
-    required this.firstName,
-    required this.lastName,
-  });
+  const AuthLoginSuccess({required this.phone});
   @override
-  List<Object?> get props => [phone, firstName, lastName];
+  List<Object?> get props => [phone];
 }
 
+/// Carries phone + password so PINSetupPage can pass them back in
+/// AuthSetPINRequested without relying on any storage.
 class AuthRegisterSuccess extends AuthState {
   final String phone;
-  final String firstName;
-  final String lastName;
-  final String dateOfBirth;
-  const AuthRegisterSuccess({
-    required this.phone,
-    required this.firstName,
-    required this.lastName,
-    required this.dateOfBirth,
-  });
+  final String password;
+  const AuthRegisterSuccess({required this.phone, required this.password});
   @override
-  List<Object?> get props => [phone, firstName, lastName, dateOfBirth];
+  List<Object?> get props => [phone, password];
 }
+
+class AuthPINSet extends AuthState {}
 
 class AuthFailure extends AuthState {
   final String message;
@@ -92,6 +96,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthInitial()) {
     on<AuthLoginRequested>(_onLogin);
     on<AuthRegisterRequested>(_onRegister);
+    on<AuthSetPINRequested>(_onSetPIN);
     on<AuthReset>((_, emit) => emit(AuthInitial()));
   }
 
@@ -99,13 +104,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     final result = await _repo.login(phone: event.phone, password: event.password);
     if (result != null && result['data'] != null) {
-      final data = result['data'] as Map?;
-      final user = data?['user'] as Map? ?? data ?? {};
-      emit(AuthLoginSuccess(
-        phone: _toE164(event.phone),
-        firstName: user['first_name']?.toString() ?? '',
-        lastName: user['last_name']?.toString() ?? '',
-      ));
+      emit(AuthLoginSuccess(phone: _toE164(event.phone)));
     } else {
       final msg = result?['message'] as String? ?? 'Login failed. Check your credentials.';
       emit(AuthFailure(message: msg));
@@ -121,25 +120,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
       firstName: event.firstName,
       lastName: event.lastName,
-      dateOfBirth: event.dateOfBirth,
     );
 
     if (result['success'] == true) {
-      // Auto-login to get JWT into memory
+      // Auto-login immediately so the JWT is in memory for set-pin
       final loginResult = await _repo.login(phone: event.phone, password: event.password);
       if (loginResult != null && loginResult['data'] != null) {
-        log('Auto-login after register succeeded');
+        log('Auto-login after register succeeded — token in memory');
       } else {
-        log('Auto-login after register failed');
+        log('Auto-login after register failed — PIN step will re-authenticate');
       }
-      emit(AuthRegisterSuccess(
-        phone: e164,
-        firstName: event.firstName,
-        lastName: event.lastName,
-        dateOfBirth: event.dateOfBirth,
-      ));
+      emit(AuthRegisterSuccess(phone: e164, password: event.password));
     } else {
       final msg = result['message'] as String? ?? 'Registration failed. Try again.';
+      emit(AuthFailure(message: msg));
+    }
+  }
+
+  Future<void> _onSetPIN(AuthSetPINRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    log('SetPIN — phone=${event.phone}');
+    final result = await _repo.setPin(
+      pin: event.pin,
+      confirmPin: event.confirmPin,
+      phone: event.phone,
+      password: event.password,
+    );
+    if (result['success'] == true) {
+      emit(AuthPINSet());
+    } else {
+      final msg = result['message'] as String? ?? 'Failed to set PIN. Please try again.';
       emit(AuthFailure(message: msg));
     }
   }

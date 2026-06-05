@@ -8,51 +8,21 @@ import '../../../../features/checkout/presentation/pages/search_aggregation_page
 import '../../../../features/vas/presentation/pages/vas_hub_page.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
-import '../../../../features/profile/data/repositories/profile_repository.dart';
-import '../../../../features/profile/presentation/pages/profile_page.dart';
-import '../../../../features/profile/presentation/pages/change_pin_page.dart';
-import '../../../../features/profile/presentation/pages/help_support_page.dart';
 
 class WalletDashboardPage extends StatelessWidget {
-  final String? initialFirstName;
-  final String? initialLastName;
-  final String? initialPhone;
-  final String? initialDob;
-
-  const WalletDashboardPage({
-    super.key,
-    this.initialFirstName,
-    this.initialLastName,
-    this.initialPhone,
-    this.initialDob,
-  });
+  const WalletDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => WalletBloc()..add(WalletLoadRequested()),
-      child: _WalletDashboardView(
-        initialFirstName: initialFirstName,
-        initialLastName: initialLastName,
-        initialPhone: initialPhone,
-        initialDob: initialDob,
-      ),
+      child: const _WalletDashboardView(),
     );
   }
 }
 
 class _WalletDashboardView extends StatefulWidget {
-  final String? initialFirstName;
-  final String? initialLastName;
-  final String? initialPhone;
-  final String? initialDob;
-
-  const _WalletDashboardView({
-    this.initialFirstName,
-    this.initialLastName,
-    this.initialPhone,
-    this.initialDob,
-  });
+  const _WalletDashboardView();
 
   @override
   State<_WalletDashboardView> createState() => _WalletDashboardViewState();
@@ -67,12 +37,6 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   late Animation<Offset> _cardSlide;
   late Animation<double> _actionsFade;
 
-  // User info — seeded from registration props, then overwritten by profile API
-  String _firstName = '';
-  String _lastName  = '';
-  String _phone     = '';
-  String _dob       = '';
-
   static const _brand = Color(0xff0b845c);
   static const _brandDark = Color(0xff086b4a);
   static const _surface = Color(0xfff4f6f5);
@@ -80,12 +44,6 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   @override
   void initState() {
     super.initState();
-    _firstName = widget.initialFirstName ?? '';
-    _lastName  = widget.initialLastName  ?? '';
-    _phone     = widget.initialPhone     ?? '';
-    _dob       = widget.initialDob       ?? '';
-    // If no seed data provided (login flow), fetch from API
-    if (_firstName.isEmpty) _fetchUserProfile();
     _cardAnimCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _actionsAnimCtrl = AnimationController(
@@ -111,21 +69,6 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     _cardAnimCtrl.dispose();
     _actionsAnimCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _fetchUserProfile() async {
-    try {
-      final repo = ProfileRepository();
-      final data = await repo.getProfile();
-      if (data != null && mounted) {
-        setState(() {
-          _firstName = data['first_name']?.toString() ?? _firstName;
-          _lastName  = data['last_name']?.toString()  ?? _lastName;
-          _phone     = data['phone']?.toString()       ?? _phone;
-          _dob       = data['date_of_birth']?.toString() ?? _dob;
-        });
-      }
-    } catch (_) {}
   }
 
   String _formatNgn(double amount) {
@@ -205,12 +148,6 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   }
 
   Widget _buildAppBar(BuildContext context, WalletState state) {
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    final displayName = _firstName.isNotEmpty ? _firstName : 'User';
-    final initials = (_firstName.isNotEmpty ? _firstName[0] : '') +
-                     (_lastName.isNotEmpty  ? _lastName[0]  : '');
-
     return SliverAppBar(
       backgroundColor: _brand,
       expandedHeight: 0,
@@ -221,55 +158,25 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          // Greeting + name
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  greeting,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.75),
-                  ),
-                ),
-                Text(
-                  displayName,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          Text(
+            'Flip Bills',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.w900,
+              fontSize: 22,
+              color: Colors.white,
             ),
           ),
+          const Spacer(),
           IconButton(
-            icon: const Icon(Icons.notifications_none_rounded,
-                color: Colors.white, size: 26),
+            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
             onPressed: () {},
           ),
-          // Avatar with initials
           GestureDetector(
             onTap: () => _showProfileMenu(context),
             child: CircleAvatar(
-              radius: 19,
-              backgroundColor: Colors.white.withValues(alpha: 0.25),
-              child: initials.isNotEmpty
-                  ? Text(
-                      initials.toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.person_outline_rounded,
-                      color: Colors.white, size: 20),
+              radius: 17,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              child: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 20),
             ),
           ),
           const SizedBox(width: 4),
@@ -676,42 +583,17 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
             _ProfileMenuItem(
               icon: Icons.person_outline_rounded,
               label: 'My Profile',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfilePage(
-                      seedFirstName: _firstName,
-                      seedLastName:  _lastName,
-                      seedPhone:     _phone,
-                      seedDob:       _dob,
-                    ),
-                  ),
-                );
-              },
+              onTap: () => Navigator.pop(context),
             ),
             _ProfileMenuItem(
               icon: Icons.lock_outline_rounded,
               label: 'Change PIN',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ChangePinPage()),
-                );
-              },
+              onTap: () => Navigator.pop(context),
             ),
             _ProfileMenuItem(
               icon: Icons.help_outline_rounded,
               label: 'Help & Support',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HelpSupportPage()),
-                );
-              },
+              onTap: () => Navigator.pop(context),
             ),
             const Divider(height: 24),
             _ProfileMenuItem(

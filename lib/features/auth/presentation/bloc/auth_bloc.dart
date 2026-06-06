@@ -117,16 +117,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final e164 = _toE164(event.phone);
 
     final result = await _repo.register(
-      phone: event.phone,
+      phone: e164,
       password: event.password,
       firstName: event.firstName,
       lastName: event.lastName,
       dateOfBirth: event.dateOfBirth,
     );
 
-    if (result['success'] == true) {
+    if (result['success'] == true || result['success'].toString() == 'true') {
       // Auto-login to get JWT into memory
-      final loginResult = await _repo.login(phone: event.phone, password: event.password);
+      final loginResult = await _repo.login(phone: e164, password: event.password);
       if (loginResult != null && loginResult['data'] != null) {
         log('Auto-login after register succeeded');
       } else {

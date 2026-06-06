@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/wallet_bloc.dart';
-import '../../data/repositories/wallet_repository.dart';
 import '../../../../features/checkout/presentation/pages/search_aggregation_page.dart';
 import '../../../../features/vas/presentation/pages/vas_hub_page.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
 import '../../../../features/profile/data/repositories/profile_repository.dart';
 import '../../../../features/profile/presentation/pages/profile_page.dart';
-import '../../../../features/profile/presentation/pages/change_pin_page.dart';
+import '../../../../features/profile/presentation/pages/change_password_page.dart';
 import '../../../../features/profile/presentation/pages/help_support_page.dart';
+import '../../../../features/checkout/presentation/pages/offline_travel_passes_page.dart';
 
 class WalletDashboardPage extends StatelessWidget {
   final String? initialFirstName;
@@ -74,7 +74,6 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   String _dob       = '';
 
   static const _brand = Color(0xff0b845c);
-  static const _brandDark = Color(0xff086b4a);
   static const _surface = Color(0xfff4f6f5);
 
   @override
@@ -693,12 +692,23 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
             ),
             _ProfileMenuItem(
               icon: Icons.lock_outline_rounded,
-              label: 'Change PIN',
+              label: 'Change Password',
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ChangePinPage()),
+                  MaterialPageRoute(builder: (_) => const ChangePasswordPage()),
+                );
+              },
+            ),
+            _ProfileMenuItem(
+              icon: Icons.airplane_ticket_rounded,
+              label: 'Offline Travel Passes',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const OfflineTravelPassesPage()),
                 );
               },
             ),

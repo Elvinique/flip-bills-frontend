@@ -51,3 +51,18 @@ class VasFailure extends VasState {
   @override
   List<Object?> get props => [message];
 }
+
+class VasReconciling extends VasState {
+  final String message;
+  const VasReconciling({required this.message});
+  @override
+  List<Object?> get props => [message];
+}
+
+class VasReversal extends VasState {
+  final String message;
+  final String reference;
+  const VasReversal({required this.message, required this.reference});
+  @override
+  List<Object?> get props => [message, reference];
+}

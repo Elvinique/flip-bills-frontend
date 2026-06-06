@@ -113,6 +113,11 @@ Future<void> _loadWalletBalance() async {
                       ],
 
                       if (state is CheckoutSelectionActive) ...[
+                        Text("Available Operators", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xff1a1d20))),
+                        const SizedBox(height: 12),
+                        _buildOperatorList(state),
+                        const SizedBox(height: 24),
+
                         Text("Select Seats (Click 2)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 10),
                         SizedBox(
@@ -271,6 +276,89 @@ Future<void> _loadWalletBalance() async {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildOperatorList(CheckoutSelectionActive state) {
+    if (state.manifests.isEmpty) {
+      return const Text('No routes found for this date.', style: TextStyle(color: Colors.grey));
+    }
+    
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: state.manifests.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final manifest = state.manifests[index];
+        final isSelected = state.selectedManifest?['vehicle_ref'] == manifest['vehicle_ref'];
+        
+        return InkWell(
+          onTap: () => context.read<CheckoutBloc>().add(SelectManifest(manifest)),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xffe8f5f0) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? const Color(0xff0b845c) : Colors.grey.shade300,
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff0b845c).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.directions_bus_rounded, color: Color(0xff0b845c)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        manifest['operator_name'] as String? ?? 'Unknown Operator',
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xff1a1d20)),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.star_rounded, size: 14, color: Colors.orange.shade400),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${manifest['rating'] ?? '4.0'} · ${manifest['vehicle_class'] ?? 'Standard'}',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₦${((manifest['price_ngn'] as num?) ?? 0).toStringAsFixed(0)}',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xff0b845c)),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${manifest['seats_available'] ?? 0} seats left',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

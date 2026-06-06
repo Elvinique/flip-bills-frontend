@@ -47,12 +47,12 @@ class SelectManifest extends CheckoutEvent {
 class ConfirmBusBooking extends CheckoutEvent {
   final String passengerName;
   final String passengerPhone;
-  final String transactionPin;
+  final String password;
 
   const ConfirmBusBooking({
     required this.passengerName,
     required this.passengerPhone,
-    required this.transactionPin,
+    required this.password,
   });
 
   @override

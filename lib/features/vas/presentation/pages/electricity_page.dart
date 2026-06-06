@@ -70,24 +70,33 @@ class _ElectricityPageState extends State<ElectricityPage> {
   Widget build(BuildContext context) {
     return BlocListener<VasBloc, VasState>(
       listener: (context, state) {
-        if (state is VasSuccess || state is VasFailure) {
+        if (state is VasReconciling) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.message, style: const TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.orange.shade700,
+            duration: const Duration(seconds: 4),
+          ));
+        } else if (state is VasSuccess || state is VasFailure || state is VasReversal) {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (_) => VasResultSheet(
-              success: state is VasSuccess,
-              message: state is VasSuccess
-                  ? (state as VasSuccess).message
-                  : (state as VasFailure).message,
-              reference:
-                  state is VasSuccess ? (state as VasSuccess).reference : null,
-              token: state is VasSuccess ? (state as VasSuccess).token : null,
-              onDone: () {
-                Navigator.pop(context);
-                if (state is VasSuccess) Navigator.pop(context);
-              },
-            ),
+            builder: (_) {
+              final success = state is VasSuccess ? state : null;
+              final failure = state is VasFailure ? state : null;
+              final reversal = state is VasReversal ? state : null;
+              return VasResultSheet(
+                success: state is VasSuccess,
+                isReversal: state is VasReversal,
+                message: success?.message ?? failure?.message ?? reversal?.message ?? '',
+                reference: success?.reference ?? reversal?.reference,
+                token: success?.token,
+                onDone: () {
+                  Navigator.pop(context);
+                  if (state is VasSuccess || state is VasReversal) Navigator.pop(context);
+                },
+              );
+            },
           );
         }
       },

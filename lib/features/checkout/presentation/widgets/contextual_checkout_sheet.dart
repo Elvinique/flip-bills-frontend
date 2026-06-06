@@ -29,7 +29,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
 
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _pinCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
 
   static const _green = Color(0xff0b845c);
   static const _ink = Color(0xff0d1b16);
@@ -40,7 +40,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _pinCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -50,7 +50,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
   String? _validate() {
     if (_nameCtrl.text.trim().isEmpty) return 'Enter passenger full name';
     if (_phoneCtrl.text.trim().length < 10) return 'Enter a valid phone number';
-    if (_pinCtrl.text.trim().length != 6) return 'Enter your 6-digit transaction PIN';
+    if (_passwordCtrl.text.trim().length < 6) return 'Password must be at least 6 characters';
     return null;
   }
 
@@ -104,7 +104,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
       context.read<CheckoutBloc>().add(ConfirmBusBooking(
         passengerName: _nameCtrl.text.trim(),
         passengerPhone: _phoneCtrl.text.trim(),
-        transactionPin: _pinCtrl.text.trim(),
+        password: _passwordCtrl.text.trim(),
       ));
 
       if (mounted) Navigator.pop(context);
@@ -194,17 +194,15 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Transaction PIN
-            _label('Transaction PIN'),
+            // Password
+            _label('Password'),
             const SizedBox(height: 8),
             _textField(
-              controller: _pinCtrl,
-              hint: '••••••',
+              controller: _passwordCtrl,
+              hint: 'Enter your password',
               icon: Icons.lock_outline_rounded,
-              keyboardType: TextInputType.number,
-              formatters: [FilteringTextInputFormatter.digitsOnly],
+              keyboardType: TextInputType.visiblePassword,
               obscure: true,
-              maxLength: 6,
             ),
             const SizedBox(height: 16),
 

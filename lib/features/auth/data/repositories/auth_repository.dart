@@ -37,7 +37,8 @@ class AuthRepository {
     String dateOfBirth = '',
   }) async {
     try {
-      final e164 = _toE164(phone);
+      // phone is already in E.164 format — normalise only if needed
+      final e164 = phone.startsWith('+') ? phone : _toE164(phone);
       final payload = <String, dynamic>{
         'phone': e164,
         'password': password,
@@ -90,79 +91,4 @@ class AuthRepository {
     }
   }
 
-  // ── Verify phone (PIN-based — kept for API compatibility) ──────────────────
-
-  Future<bool> verifyPhone({required String phone, required String otp}) async {
-    try {
-      final e164 = _toE164(phone);
-      final response = await _client.dio.post('/api/v1/auth/verify-phone', data: {
-        'phone': e164,
-        'otp': otp,
-      });
-      return response.statusCode == 200;
-    } catch (e) {
-      log('VerifyPhone error: $e');
-      return false;
-    }
-  }
-
-  // ── Resend OTP ─────────────────────────────────────────────────────────────
-
-  Future<bool> resendOTP(String phone) async {
-    try {
-      final e164 = _toE164(phone);
-      await _client.dio.post('/api/v1/auth/resend-otp', data: {
-        'phone': e164,
-        'purpose': 'phone_verify',
-      });
-      return true;
-    } catch (e) {
-      log('ResendOTP error: $e');
-      return false;
-    }
-  }
-
-  // ── Set PIN ────────────────────────────────────────────────────────────────
-
-  Future<Map<String, dynamic>> setPin({
-    required String pin,
-    required String confirmPin,
-    required String phone,
-    required String password,
-  }) async {
-    try {
-      final e164 = _toE164(phone);
-
-      // Ensure we have a JWT — re-login if memory cache is empty
-      if (_client.accessToken == null || _client.accessToken!.isEmpty) {
-        log('SetPIN: no token in memory — re-logging in');
-        final loginResult = await login(phone: phone, password: password);
-        if (loginResult == null || loginResult['data'] == null) {
-          log('SetPIN: re-login failed');
-          return {'success': false, 'message': 'Session expired. Please log in again.'};
-        }
-      }
-
-      log('SetPIN: token present — ${_client.accessToken?.substring(0, 20)}...');
-
-      final response = await _client.dio.post('/api/v1/auth/set-pin', data: {
-        'pin': pin,
-        'confirm_pin': confirmPin,
-        'phone': e164,
-      });
-      log('SetPIN response: ${response.statusCode} ${response.data}');
-      final ok = response.statusCode == 200;
-      return {
-        'success': ok,
-        'message': ok ? 'PIN set successfully.' : (response.data['message'] ?? 'Failed to set PIN.'),
-      };
-    } on DioException catch (e) {
-      log('SetPIN DioException: ${e.response?.statusCode} ${e.response?.data}');
-      final msg = _extractErrorMessage(e, 'Failed to set PIN. Please try again.');
-      return {'success': false, 'message': msg};
-    } catch (e) {
-      log('SetPIN error: $e');
-      return {'success': false, 'message': 'An unexpected error occurred.'};
-    }
-  }
 }

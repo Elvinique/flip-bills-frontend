@@ -7,6 +7,7 @@ class VasResultSheet extends StatelessWidget {
   final String message;
   final String? reference;
   final String? token;
+  final bool isReversal;
   final VoidCallback onDone;
 
   const VasResultSheet({
@@ -15,6 +16,7 @@ class VasResultSheet extends StatelessWidget {
     required this.message,
     this.reference,
     this.token,
+    this.isReversal = false,
     required this.onDone,
   });
 
@@ -47,25 +49,35 @@ class VasResultSheet extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: success
-                  ? const Color(0xffe1f5ee)
-                  : const Color(0xfffdecea),
+              color: isReversal 
+                  ? const Color(0xfffff4e6) 
+                  : success
+                      ? const Color(0xffe1f5ee)
+                      : const Color(0xfffdecea),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              success ? Icons.check_rounded : Icons.error_outline_rounded,
+              isReversal 
+                  ? Icons.refresh_rounded 
+                  : success ? Icons.check_rounded : Icons.error_outline_rounded,
               size: 36,
-              color: success ? _brand : const Color(0xffd32f2f),
+              color: isReversal 
+                  ? Colors.orange.shade700 
+                  : success ? _brand : const Color(0xffd32f2f),
             ),
           ),
           const SizedBox(height: 16),
 
           Text(
-            success ? 'Transaction successful' : 'Transaction failed',
+            isReversal 
+                ? 'Transaction Reversed' 
+                : success ? 'Transaction successful' : 'Transaction failed',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: success ? _brand : const Color(0xffd32f2f),
+              color: isReversal 
+                  ? Colors.orange.shade700 
+                  : success ? _brand : const Color(0xffd32f2f),
             ),
           ),
           const SizedBox(height: 8),

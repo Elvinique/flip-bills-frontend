@@ -210,9 +210,9 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: Text(
-                              _currentStep == 0
-                                  ? 'Enter your personal details'
-                                  : 'Set your phone & password',
+                            _currentStep == 0
+                                   ? 'Enter your personal details'
+                                   : 'Set your phone & password',
                               key: ValueKey('sub$_currentStep'),
                               style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13,
@@ -353,23 +353,18 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 20),
-          _label('Password (6 digits)'),
+          _label('Password'),
           const SizedBox(height: 8),
           TextFormField(
             controller: _passwordCtrl,
             obscureText: _obscurePassword,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
+            keyboardType: TextInputType.visiblePassword,
             style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: _ink,
-                letterSpacing: 10),
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: _ink),
             decoration: _inputDeco(
-              hint: '••••••',
+              hint: 'At least 6 characters',
               icon: Icons.lock_outline_rounded,
               suffix: GestureDetector(
                 onTap: () =>
@@ -383,27 +378,19 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
               ),
             ),
           ),
-          const SizedBox(height: 6),
-          Text('Enter exactly 6 digits',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _muted)),
           const SizedBox(height: 20),
           _label('Confirm Password'),
           const SizedBox(height: 8),
           TextFormField(
             controller: _confirmCtrl,
             obscureText: _obscureConfirm,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
+            keyboardType: TextInputType.visiblePassword,
             style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: _ink,
-                letterSpacing: 10),
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: _ink),
             decoration: _inputDeco(
-              hint: '••••••',
+              hint: 'Re-enter password',
               icon: Icons.lock_outline_rounded,
               suffix: GestureDetector(
                 onTap: () =>
@@ -460,22 +447,25 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     if (phone.isEmpty) {
       _showSnack('Please enter your phone number.', isError: true); return;
     }
-    if (phone.length < 10) {
-      _showSnack('Enter a valid Nigerian phone number.', isError: true); return;
+    if (phone.length < 10 || phone.length > 11) {
+      _showSnack('Enter a valid Nigerian phone number (10 or 11 digits).', isError: true); return;
     }
-    if (pass.length != 6) {
-      _showSnack('Password must be exactly 6 digits.', isError: true); return;
+    if (pass.length < 6) {
+      _showSnack('Password must be at least 6 characters.', isError: true); return;
     }
-    if (conf.length != 6) {
+    if (conf.length < 6) {
       _showSnack('Please confirm your password.', isError: true); return;
     }
     if (pass != conf) {
       _showSnack('Passwords do not match.', isError: true); return;
     }
 
-    final dobStr = _selectedDob != null
-        ? '${_selectedDob!.year}-${_selectedDob!.month.toString().padLeft(2, '0')}-${_selectedDob!.day.toString().padLeft(2, '0')}'
-        : '';
+    if (_selectedDob == null) {
+      _showSnack('Please select your date of birth.', isError: true); return;
+    }
+
+    final dobStr =
+        '${_selectedDob!.year}-${_selectedDob!.month.toString().padLeft(2, '0')}-${_selectedDob!.day.toString().padLeft(2, '0')}';
 
     context.read<AuthBloc>().add(AuthRegisterRequested(
       phone: phone,

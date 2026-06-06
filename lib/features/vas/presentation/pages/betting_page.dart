@@ -63,11 +63,151 @@ class _BettingPageState extends State<BettingPage> {
       return;
     }
 
+    if (amount > 10000) {
+      _showFrictionPrompt(amount);
+      return;
+    }
+
     context.read<VasBloc>().add(VasFundBetting(
           customerId: id,
           provider: _selectedProvider!,
           amountKobo: amount * 100,
         ));
+  }
+
+  void _showFrictionPrompt(int amount) {
+    bool acknowledged = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: const BoxDecoration(
+                      color: Color(0xfffff4e6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.warning_amber_rounded, size: 36, color: Colors.orange.shade700),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'High Velocity Alert',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'You are attempting to transfer ₦${amount.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}. This departs sharply from your weekly betting velocity.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: Colors.grey.shade800,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.orange.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: acknowledged,
+                            activeColor: Colors.orange.shade700,
+                            onChanged: (val) {
+                              setModalState(() {
+                                acknowledged = val ?? false;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'I acknowledge that betting deposits are final and cannot be easily reversed due to AML regulations.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: Colors.grey.shade700,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      onPressed: acknowledged ? () {
+                        Navigator.pop(context); // Dismiss the friction prompt
+                        this.context.read<VasBloc>().add(VasFundBetting(
+                          customerId: _customerIdCtrl.text.trim(),
+                          provider: _selectedProvider!,
+                          amountKobo: amount * 100,
+                        ));
+                      } : null,
+                      icon: const Icon(Icons.fingerprint_rounded),
+                      label: Text(
+                        'Authorize Transfer',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade700,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _err(String msg) =>
@@ -77,23 +217,32 @@ class _BettingPageState extends State<BettingPage> {
   Widget build(BuildContext context) {
     return BlocListener<VasBloc, VasState>(
       listener: (context, state) {
-        if (state is VasSuccess || state is VasFailure) {
+        if (state is VasReconciling) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.message, style: const TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.orange.shade700,
+            duration: const Duration(seconds: 4),
+          ));
+        } else if (state is VasSuccess || state is VasFailure || state is VasReversal) {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (_) => VasResultSheet(
-              success: state is VasSuccess,
-              message: state is VasSuccess
-                  ? (state as VasSuccess).message
-                  : (state as VasFailure).message,
-              reference:
-                  state is VasSuccess ? (state as VasSuccess).reference : null,
-              onDone: () {
-                Navigator.pop(context);
-                if (state is VasSuccess) Navigator.pop(context);
-              },
-            ),
+            builder: (_) {
+              final success = state is VasSuccess ? state : null;
+              final failure = state is VasFailure ? state : null;
+              final reversal = state is VasReversal ? state : null;
+              return VasResultSheet(
+                success: state is VasSuccess,
+                isReversal: state is VasReversal,
+                message: success?.message ?? failure?.message ?? reversal?.message ?? '',
+                reference: success?.reference ?? reversal?.reference,
+                onDone: () {
+                  Navigator.pop(context);
+                  if (state is VasSuccess || state is VasReversal) Navigator.pop(context);
+                },
+              );
+            },
           );
         }
       },

@@ -72,32 +72,32 @@ class ProfileRepository {
     }
   }
 
-  // ── Change PIN ─────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> changePin({
-    required String currentPin,
-    required String newPin,
-    required String confirmPin,
+  // ── Change Password ────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
   }) async {
     try {
       final response =
-          await _client.dio.post('/api/v1/auth/change-pin', data: {
-        'current_pin': currentPin,
-        'new_pin': newPin,
-        'confirm_pin': confirmPin,
+          await _client.dio.post('/api/v1/auth/change-password', data: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+        'confirm_password': confirmPassword,
       });
       final ok = response.statusCode == 200;
       return {
         'success': ok,
         'message': ok
-            ? 'PIN changed successfully.'
-            : (response.data['message'] ?? 'Failed to change PIN.'),
+            ? 'Password changed successfully.'
+            : (response.data['message'] ?? 'Failed to change password.'),
       };
     } on DioException catch (e) {
-      log('ChangePin DioException: ${e.response?.statusCode} ${e.response?.data}');
-      final msg = _extractErrorMessage(e, 'Failed to change PIN. Please try again.');
+      log('ChangePassword DioException: ${e.response?.statusCode} ${e.response?.data}');
+      final msg = _extractErrorMessage(e, 'Failed to change password. Please try again.');
       return {'success': false, 'message': msg};
     } catch (e) {
-      log('ChangePin error: $e');
+      log('ChangePassword error: $e');
       return {'success': false, 'message': 'An unexpected error occurred.'};
     }
   }

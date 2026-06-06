@@ -35,7 +35,6 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-Platform-Channel': 'FlipBills-Mobile',
         },
       ),
     );
@@ -50,8 +49,6 @@ class ApiClient {
             // Keep in-memory cache warm
             _accessToken ??= token;
           }
-          options.headers['X-Request-Timestamp'] =
-              DateTime.now().millisecondsSinceEpoch.toString();
           return handler.next(options);
         },
         onError: (DioException error, ErrorInterceptorHandler handler) async {

@@ -42,14 +42,26 @@ class AuthRepository {
       final payload = <String, dynamic>{
         'phone': e164,
         'password': password,
+        'password_confirmation': password,
         'first_name': firstName,
         'last_name': lastName,
       };
       if (dateOfBirth.isNotEmpty) payload['date_of_birth'] = dateOfBirth;
-      final response = await _client.dio.post('/api/v1/auth/register', data: payload);
+
+      log('Register payload: $payload');
+
+      final response = await _client.dio.post(
+        '/api/v1/auth/register',
+        data: payload,
+        options: Options(contentType: 'application/json'),
+      );
       // Backend returns 201 with {"success": true, "message": "..."}
       final body = response.data as Map<String, dynamic>? ?? {};
-      return {'success': body['success'] == true, 'message': body['message'] ?? 'Registration successful.'};
+      log('Register response: $body');
+      return {
+        'success': body['success'] == true,
+        'message': body['message'] ?? 'Registration successful.',
+      };
     } on DioException catch (e) {
       log('Register DioException: ${e.response?.statusCode} ${e.response?.data}');
       final msg = _extractErrorMessage(e, 'Registration failed. Please try again.');
@@ -68,10 +80,14 @@ class AuthRepository {
   }) async {
     try {
       final e164 = _toE164(phone);
-      final response = await _client.dio.post('/api/v1/auth/login', data: {
-        'phone': e164,
-        'password': password,
-      });
+      final response = await _client.dio.post(
+        '/api/v1/auth/login',
+        data: {
+          'phone': e164,
+          'password': password,
+        },
+        options: Options(contentType: 'application/json'),
+      );
       if (response.statusCode == 200 && response.data['data'] != null) {
         final data = response.data['data'];
         await _client.saveTokens(
@@ -90,5 +106,4 @@ class AuthRepository {
       return {'success': false, 'message': 'An unexpected error occurred.', 'data': null};
     }
   }
-
 }

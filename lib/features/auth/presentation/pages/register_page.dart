@@ -210,9 +210,9 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: Text(
-                            _currentStep == 0
-                                   ? 'Enter your personal details'
-                                   : 'Set your phone & password',
+                              _currentStep == 0
+                                  ? 'Enter your personal details'
+                                  : 'Set your phone & password',
                               key: ValueKey('sub$_currentStep'),
                               style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13,
@@ -336,7 +336,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     );
   }
 
-  // ── Step 1: Phone + 6-digit password + confirm ────────────────────────────
+  // ── Step 1: Phone + password + confirm ────────────────────────────────────
   Widget _buildStep1() {
     return Builder(builder: (context) {
       return Column(
@@ -364,7 +364,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                 fontWeight: FontWeight.w500,
                 color: _ink),
             decoration: _inputDeco(
-              hint: 'At least 6 characters',
+              hint: 'At least 8 characters',
               icon: Icons.lock_outline_rounded,
               suffix: GestureDetector(
                 onTap: () =>
@@ -450,16 +450,15 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     if (phone.length < 10 || phone.length > 11) {
       _showSnack('Enter a valid Nigerian phone number (10 or 11 digits).', isError: true); return;
     }
-    if (pass.length < 6) {
-      _showSnack('Password must be at least 6 characters.', isError: true); return;
+    if (pass.length < 8) {
+      _showSnack('Password must be at least 8 characters.', isError: true); return;
     }
-    if (conf.length < 6) {
+    if (conf.length < 8) {
       _showSnack('Please confirm your password.', isError: true); return;
     }
     if (pass != conf) {
       _showSnack('Passwords do not match.', isError: true); return;
     }
-
     if (_selectedDob == null) {
       _showSnack('Please select your date of birth.', isError: true); return;
     }

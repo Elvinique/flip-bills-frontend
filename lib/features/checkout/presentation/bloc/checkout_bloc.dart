@@ -16,15 +16,17 @@ class TriggerParallelSearch extends CheckoutEvent {
   final String origin;
   final String destination;
   final String departureDate;
+  final String travelType;
 
   const TriggerParallelSearch({
     this.origin = 'Lagos',
     this.destination = 'Abuja',
     String? departureDate,
+    this.travelType = 'bus',
   }) : departureDate = departureDate ?? '';
 
   @override
-  List<Object?> get props => [origin, destination, departureDate];
+  List<Object?> get props => [origin, destination, departureDate, travelType];
 }
 
 class UpdateSeatSelection extends CheckoutEvent {
@@ -59,6 +61,21 @@ class ConfirmBusBooking extends CheckoutEvent {
   List<Object?> get props => [passengerName, passengerPhone];
 }
 
+class ConfirmFlightBooking extends CheckoutEvent {
+  final String passengerName;
+  final String passengerPhone;
+  final String password;
+
+  const ConfirmFlightBooking({
+    required this.passengerName,
+    required this.passengerPhone,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [passengerName, passengerPhone];
+}
+
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
@@ -69,6 +86,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<UpdateSeatSelection>(_onSeatUpdate);
     on<SelectManifest>(_onSelectManifest);
     on<ConfirmBusBooking>(_onConfirmBooking);
+    on<ConfirmFlightBooking>(_onConfirmFlightBooking);
   }
 
   Future<void> _onSearch(TriggerParallelSearch event, Emitter<CheckoutState> emit) async {
@@ -78,11 +96,21 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         ? event.departureDate
         : DateTime.now().toIso8601String().substring(0, 10);
 
-    final manifests = await _repo.fetchParallelManifests(
-      departure: event.origin,
-      destination: event.destination,
-      departureDate: date,
-    );
+    List<Map<String, dynamic>> manifests = [];
+    
+    if (event.travelType == 'bus') {
+      manifests = await _repo.fetchParallelManifests(
+        departure: event.origin,
+        destination: event.destination,
+        departureDate: date,
+      );
+    } else {
+      manifests = await _repo.fetchFlightManifests(
+        origin: event.origin,
+        destination: event.destination,
+        departureDate: date,
+      );
+    }
 
     emit(CheckoutSelectionActive(
       selectedSeats: const [],
@@ -170,6 +198,83 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
           firstBooking?['qr_data'] as String? ??
           firstBooking?['booking_ref'] as String? ??
           'FLIP-${DateTime.now().millisecondsSinceEpoch}';
+
+      final bookingId = firstBooking?['id'] as String? ??
+          firstBooking?['booking_id'] as String? ??
+          qrData;
+
+      emit(CheckoutSuccess(
+        bookingId: bookingId,
+        ticketQrData: qrData,
+        operatorName: manifest['operator_name'] as String? ?? manifest['operator_code'] as String,
+        origin: manifest['origin'] as String,
+        destination: manifest['destination'] as String,
+        departureDate: departureDate,
+        seats: current.selectedSeats,
+      ));
+    } catch (e) {
+      emit(CheckoutFailureReversal(
+        message: 'Booking failed: ${e.toString()}. Please try again.',
+      ));
+    }
+  }
+
+  Future<void> _onConfirmFlightBooking(ConfirmFlightBooking event, Emitter<CheckoutState> emit) async {
+    final current = state;
+    if (current is! CheckoutSelectionActive) return;
+
+    final manifest = current.selectedManifest;
+    if (manifest == null) {
+      emit(const CheckoutFailureReversal(
+        message: 'No airline selected. Please search again and select a flight.',
+      ));
+      return;
+    }
+
+    if (current.selectedSeats.isEmpty) {
+      emit(const CheckoutFailureReversal(
+        message: 'No seats selected. Please select at least one seat.',
+      ));
+      return;
+    }
+
+    emit(CheckoutProcessingLedger());
+
+    try {
+      final String departureDate = manifest['departure_date'] as String? ??
+          DateTime.now().toIso8601String().substring(0, 10);
+
+      Map<String, dynamic>? firstBooking;
+
+      for (final seat in current.selectedSeats) {
+        // Assume seat mapping is standard "A1", "A2" internally represented by indexes
+        // The UI maps int -> string like 0 -> "1A". For the mock, we just pass the seat index string.
+        final result = await _repo.bookFlight(
+          airlineCode: manifest['operator_code'] as String,
+          flightRef: manifest['vehicle_ref'] as String,
+          seatNumber: seat.toString(),
+          departureDate: departureDate,
+          origin: manifest['origin'] as String,
+          destination: manifest['destination'] as String,
+          passengerName: event.passengerName,
+          passengerPhone: event.passengerPhone,
+        );
+
+        if (result == null) {
+          emit(CheckoutFailureReversal(
+            message:
+                'Flight booking failed for seat $seat. Wallet has not been charged.',
+          ));
+          return;
+        }
+
+        firstBooking ??= result;
+      }
+
+      final qrData = firstBooking?['offline_qr'] as String? ??
+          firstBooking?['qr_data'] as String? ??
+          firstBooking?['booking_ref'] as String? ??
+          'FLIP-FLIGHT-${DateTime.now().millisecondsSinceEpoch}';
 
       final bookingId = firstBooking?['id'] as String? ??
           firstBooking?['booking_id'] as String? ??

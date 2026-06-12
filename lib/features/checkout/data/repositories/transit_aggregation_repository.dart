@@ -147,4 +147,100 @@ class TransitAggregationRepository {
       },
     ];
   }
+
+  Future<List<Map<String, dynamic>>> fetchFlightManifests({
+    required String origin,
+    required String destination,
+    required String departureDate,
+  }) async {
+    try {
+      final response = await _networkWorker.get(
+        '/api/v1/travel/flight/search',
+        queryParameters: {
+          'origin': origin,
+          'destination': destination,
+          'departure_date': departureDate,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final responseData = response.data;
+        if (responseData is Map && responseData['data'] != null) {
+          return List<Map<String, dynamic>>.from(responseData['data']);
+        }
+        if (responseData is List) {
+          return List<Map<String, dynamic>>.from(responseData);
+        }
+      }
+      return _getFallbackFlights();
+    } catch (e) {
+      log('Flight search failed, using sandbox data: $e');
+      return _getFallbackFlights();
+    }
+  }
+
+  Future<Map<String, dynamic>?> bookFlight({
+    required String airlineCode,
+    required String flightRef,
+    required String seatNumber,
+    required String departureDate,
+    required String origin,
+    required String destination,
+    required String passengerName,
+    required String passengerPhone,
+  }) async {
+    try {
+      final response = await _networkWorker.post(
+        '/api/v1/travel/flight/book',
+        data: {
+          'airline_code': airlineCode,
+          'flight_ref': flightRef,
+          'seat_number': seatNumber,
+          'departure_date': departureDate,
+          'origin': origin,
+          'destination': destination,
+          'passenger': {
+            'full_name': passengerName,
+            'phone': passengerPhone,
+          },
+        },
+      );
+      if (response.statusCode == 201 && response.data != null) {
+        return Map<String, dynamic>.from(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      log('Flight booking error: $e');
+      return null;
+    }
+  }
+
+  List<Map<String, dynamic>> _getFallbackFlights() {
+    return [
+      {
+        'operator_name': 'Air Peace (Sandbox)',
+        'operator_code': 'APK',
+        'origin': 'LOS',
+        'destination': 'ABV',
+        'price_ngn': 65000.0,
+        'price_kobo': 6500000,
+        'seats_available': 45,
+        'vehicle_ref': 'APK-FL-101',
+        'vehicle_class': 'economy',
+        'rating': 4.8,
+      },
+      {
+        'operator_name': 'Ibom Air (Sandbox)',
+        'operator_code': 'IBA',
+        'origin': 'LOS',
+        'destination': 'ABV',
+        'price_ngn': 85000.0,
+        'price_kobo': 8500000,
+        'seats_available': 12,
+        'vehicle_ref': 'IBA-FL-205',
+        'vehicle_class': 'premium_economy',
+        'rating': 4.9,
+      },
+    ];
+  }
 }

@@ -12,6 +12,7 @@ import '../../../../features/profile/presentation/pages/profile_page.dart';
 import '../../../../features/profile/presentation/pages/change_password_page.dart';
 import '../../../../features/profile/presentation/pages/help_support_page.dart';
 import '../../../../features/checkout/presentation/pages/offline_travel_passes_page.dart';
+import 'loyalty_rewards_page.dart';
 
 class WalletDashboardPage extends StatelessWidget {
   final String? initialFirstName;
@@ -435,9 +436,11 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                 // Bottom row - loyalty + fund button
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoyaltyRewardsPage())),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
@@ -457,6 +460,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
                           ),
                         ],
                       ),
+                    ),
                     ),
                     const Spacer(),
                     _FundButton(onTap: () => _showFundingDialog(context)),

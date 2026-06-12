@@ -6,6 +6,7 @@ import '../bloc/checkout_state.dart';
 import '../../data/repositories/transit_aggregation_repository.dart';
 import '../../../../../features/wallet/data/repositories/wallet_repository.dart';
 import '../widgets/bus_seat_grid.dart';
+import '../widgets/flight_seat_grid.dart';
 import '../widgets/contextual_checkout_sheet.dart';
 import '../widgets/offline_ticket_pass_card.dart';
 
@@ -21,6 +22,7 @@ class _SearchAggregationPageState extends State<SearchAggregationPage> {
   final TransitAggregationRepository _vasRepo = TransitAggregationRepository();
   DateTime _travelDate = DateTime.now();
   double _walletBalance = 0.00;
+  String _travelMode = 'bus';
 
   @override
   void dispose() {
@@ -122,10 +124,15 @@ Future<void> _loadWalletBalance() async {
                         const SizedBox(height: 10),
                         SizedBox(
                           height: 200,
-                          child: BusSeatGrid(
-                            totalRows: 4, seatsPerRow: 4, occupiedSeats: const [3, 7],
-                            onSeatsChanged: (seats) => context.read<CheckoutBloc>().add(UpdateSeatSelection(seats)),
-                          ),
+                          child: _travelMode == 'bus'
+                              ? BusSeatGrid(
+                                  totalRows: 4, seatsPerRow: 4, occupiedSeats: const [3, 7],
+                                  onSeatsChanged: (seats) => context.read<CheckoutBloc>().add(UpdateSeatSelection(seats)),
+                                )
+                              : FlightSeatGrid(
+                                  totalRows: 6, seatsPerRow: 4, occupiedSeats: const [1, 5, 12],
+                                  onSeatsChanged: (seats) => context.read<CheckoutBloc>().add(UpdateSeatSelection(seats)),
+                                ),
                         ),
                         const SizedBox(height: 20),
                         if (state.selectedSeats.isNotEmpty)
@@ -145,6 +152,7 @@ Future<void> _loadWalletBalance() async {
                                       destinationBoundary: _toController.text,
                                       baseSeatPrice: ((state.selectedManifest?['price_ngn'] as num?) ?? 12000.0).toDouble(),
                                       selectedSeats: state.selectedSeats,
+                                      travelType: _travelMode,
                                     ),
                                   ),
                                 );
@@ -158,10 +166,10 @@ Future<void> _loadWalletBalance() async {
                           height: 52,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff0b845c), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                            onPressed: () => context.read<CheckoutBloc>().add(TriggerParallelSearch()),
+                            onPressed: () => context.read<CheckoutBloc>().add(TriggerParallelSearch(travelType: _travelMode)),
                             child: state is CheckoutQueryingWorkers
                                 ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text("SEARCH DISPATCHER ROUTES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                                : Text("SEARCH DISPATCHER ROUTES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                           ),
                         ),
                       ],
@@ -250,6 +258,38 @@ Future<void> _loadWalletBalance() async {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 16, offset: const Offset(0, 6))]),
       child: Column(
         children: [
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() { _travelMode = 'bus'; context.read<CheckoutBloc>().add(const UpdateSeatSelection([])); }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _travelMode == 'bus' ? const Color(0xff0b845c) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(child: Text("Bus Travel", style: TextStyle(color: _travelMode == 'bus' ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 13))),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() { _travelMode = 'flight'; context.read<CheckoutBloc>().add(const UpdateSeatSelection([])); }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _travelMode == 'flight' ? const Color(0xff0b845c) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(child: Text("Flights (Air)", style: TextStyle(color: _travelMode == 'flight' ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 13))),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           TextField(
             readOnly: true,
             controller: TextEditingController(text: 'Lagos (Jibowu Terminus)'),
@@ -315,7 +355,7 @@ Future<void> _loadWalletBalance() async {
                     color: const Color(0xff0b845c).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.directions_bus_rounded, color: Color(0xff0b845c)),
+                  child: Icon(_travelMode == 'flight' ? Icons.flight_takeoff_rounded : Icons.directions_bus_rounded, color: const Color(0xff0b845c)),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

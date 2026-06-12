@@ -10,12 +10,14 @@ class ContextualCheckoutSheet extends StatefulWidget {
   final String destinationBoundary;
   final double baseSeatPrice;
   final List<int> selectedSeats;
+  final String travelType;
 
   const ContextualCheckoutSheet({
     super.key,
     required this.destinationBoundary,
     required this.baseSeatPrice,
     required this.selectedSeats,
+    this.travelType = 'bus',
   });
 
   @override
@@ -90,7 +92,7 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
       // Cache ticket locally before network call so it's available offline
       await OfflineCacheHandler.instance.cacheTicket(
         ticketId: 'TXN-${DateTime.now().millisecondsSinceEpoch}',
-        category: 'Bus Travel',
+        category: widget.travelType == 'flight' ? 'Flight Booking' : 'Bus Travel',
         departure: 'Lagos',
         destination: widget.destinationBoundary,
         travelDate: DateTime.now().toIso8601String(),
@@ -101,11 +103,19 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
       if (!mounted) return;
 
       // Fire the real booking event — bloc handles the API call
-      context.read<CheckoutBloc>().add(ConfirmBusBooking(
-        passengerName: _nameCtrl.text.trim(),
-        passengerPhone: _phoneCtrl.text.trim(),
-        password: _passwordCtrl.text.trim(),
-      ));
+      if (widget.travelType == 'flight') {
+        context.read<CheckoutBloc>().add(ConfirmFlightBooking(
+          passengerName: _nameCtrl.text.trim(),
+          passengerPhone: _phoneCtrl.text.trim(),
+          password: _passwordCtrl.text.trim(),
+        ));
+      } else {
+        context.read<CheckoutBloc>().add(ConfirmBusBooking(
+          passengerName: _nameCtrl.text.trim(),
+          passengerPhone: _phoneCtrl.text.trim(),
+          password: _passwordCtrl.text.trim(),
+        ));
+      }
 
       if (mounted) Navigator.pop(context);
     } catch (e) {

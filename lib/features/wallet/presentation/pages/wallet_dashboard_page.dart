@@ -5,6 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../bloc/wallet_bloc.dart';
 import '../../../../features/checkout/presentation/pages/search_aggregation_page.dart';
 import '../../../../features/vas/presentation/pages/vas_hub_page.dart';
+import '../../../../features/vas/presentation/bloc/vas_bloc.dart';
+import '../../../../features/vas/presentation/pages/airtime_page.dart';
+import '../../../../features/vas/presentation/pages/data_page.dart';
+import '../../../../features/vas/presentation/pages/electricity_page.dart';
+import '../../../../features/vas/presentation/pages/betting_page.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
 import '../../../../features/profile/data/repositories/profile_repository.dart';
@@ -84,8 +89,8 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     _lastName  = widget.initialLastName  ?? '';
     _phone     = widget.initialPhone     ?? '';
     _dob       = widget.initialDob       ?? '';
-    // If no seed data provided (login flow), fetch from API
-    if (_firstName.isEmpty) _fetchUserProfile();
+    // Always fetch from API to ensure fresh data; seed values shown immediately
+    _fetchUserProfile();
     _cardAnimCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _actionsAnimCtrl = AnimationController(
@@ -119,10 +124,17 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
       final data = await repo.getProfile();
       if (data != null && mounted) {
         setState(() {
-          _firstName = data['first_name']?.toString() ?? _firstName;
-          _lastName  = data['last_name']?.toString()  ?? _lastName;
-          _phone     = data['phone']?.toString()       ?? _phone;
-          _dob       = data['date_of_birth']?.toString() ?? _dob;
+          // Try both snake_case and camelCase variants
+          _firstName = data['first_name']?.toString().trim()
+              ?? data['firstName']?.toString().trim()
+              ?? _firstName;
+          _lastName  = data['last_name']?.toString().trim()
+              ?? data['lastName']?.toString().trim()
+              ?? _lastName;
+          _phone     = data['phone']?.toString().trim()       ?? _phone;
+          _dob       = data['date_of_birth']?.toString().trim()
+              ?? data['dateOfBirth']?.toString().trim()
+              ?? _dob;
         });
       }
     } catch (_) {}
@@ -474,12 +486,102 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     );
   }
 
+  /// Opens a specific VAS page with a pre-seeded [VasBloc] (fallback catalog),
+  /// so users land directly on the service without an extra hub step.
+  void _openVasPage(BuildContext context, String vasKey) {
+    // Build a VasBloc with the hardcoded fallback catalog ready to go
+    final bloc = VasBloc()..add(VasLoadCatalog());
+
+    const airtimeNetworks = <Map<String, dynamic>>[
+      {'code': 'MTN', 'name': 'MTN Nigeria'},
+      {'code': 'GLO', 'name': 'Globacom'},
+      {'code': 'AIRTEL', 'name': 'Airtel Nigeria'},
+      {'code': '9MOBILE', 'name': '9mobile'},
+    ];
+    const dataPlans = <Map<String, dynamic>>[
+      {'code': 'MTN_1GB_30D', 'network': 'MTN', 'name': '1GB', 'amount': 50000, 'validity': '30 days'},
+      {'code': 'MTN_2GB_30D', 'network': 'MTN', 'name': '2GB', 'amount': 100000, 'validity': '30 days'},
+      {'code': 'GLO_1GB_30D', 'network': 'GLO', 'name': '1GB', 'amount': 50000, 'validity': '30 days'},
+      {'code': 'AIRTEL_1GB_30D', 'network': 'AIRTEL', 'name': '1GB', 'amount': 50000, 'validity': '30 days'},
+      {'code': '9MOBILE_1GB_30D', 'network': '9MOBILE', 'name': '1GB', 'amount': 50000, 'validity': '30 days'},
+    ];
+    const electricityDiscos = <Map<String, dynamic>>[
+      {'code': 'IKEDC', 'name': 'Ikeja Electric'},
+      {'code': 'EKEDC', 'name': 'Eko Electricity'},
+      {'code': 'AEDC', 'name': 'Abuja Electricity'},
+      {'code': 'PHED', 'name': 'Port Harcourt Electricity'},
+      {'code': 'KEDCO', 'name': 'Kano Electricity'},
+      {'code': 'IBEDC', 'name': 'Ibadan Electricity'},
+      {'code': 'BEDC', 'name': 'Benin Electricity'},
+      {'code': 'EEDC', 'name': 'Enugu Electricity'},
+    ];
+    const bettingProviders = <Map<String, dynamic>>[
+      {'code': 'BET9JA', 'name': 'Bet9ja'},
+      {'code': 'SPORTYBET', 'name': 'SportyBet'},
+      {'code': 'BETKING', 'name': 'BetKing'},
+      {'code': 'NAIRABET', 'name': 'NairaBET'},
+      {'code': '1XBET', 'name': '1xBet'},
+    ];
+
+    Widget page;
+    switch (vasKey) {
+      case 'airtime':
+        page = BlocProvider.value(
+          value: bloc,
+          child: const AirtimePage(networks: airtimeNetworks),
+        );
+        break;
+      case 'data':
+        page = BlocProvider.value(
+          value: bloc,
+          child: const DataPage(networks: airtimeNetworks, dataPlans: dataPlans),
+        );
+        break;
+      case 'electricity':
+        page = BlocProvider.value(
+          value: bloc,
+          child: const ElectricityPage(discos: electricityDiscos),
+        );
+        break;
+      case 'betting':
+        page = BlocProvider.value(
+          value: bloc,
+          child: const BettingPage(providers: bettingProviders),
+        );
+        break;
+      default:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const VasHubPage()));
+        return;
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
+
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
-      _QuickAction(icon: Icons.phone_android_rounded, label: 'Airtime', color: const Color(0xff4a90d9), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VasHubPage()))),
-      _QuickAction(icon: Icons.wifi_rounded, label: 'Data', color: const Color(0xff9b59b6), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VasHubPage()))),
-      _QuickAction(icon: Icons.bolt_rounded, label: 'Electricity', color: const Color(0xffe67e22), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VasHubPage()))),
-      _QuickAction(icon: Icons.sports_soccer_rounded, label: 'Betting', color: const Color(0xffe74c3c), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VasHubPage()))),
+      _QuickAction(
+        icon: Icons.phone_android_rounded,
+        label: 'Airtime',
+        color: const Color(0xff4a90d9),
+        onTap: () => _openVasPage(context, 'airtime'),
+      ),
+      _QuickAction(
+        icon: Icons.wifi_rounded,
+        label: 'Data',
+        color: const Color(0xff9b59b6),
+        onTap: () => _openVasPage(context, 'data'),
+      ),
+      _QuickAction(
+        icon: Icons.bolt_rounded,
+        label: 'Electricity',
+        color: const Color(0xffe67e22),
+        onTap: () => _openVasPage(context, 'electricity'),
+      ),
+      _QuickAction(
+        icon: Icons.sports_soccer_rounded,
+        label: 'Betting',
+        color: const Color(0xffe74c3c),
+        onTap: () => _openVasPage(context, 'betting'),
+      ),
       _QuickAction(
         icon: Icons.directions_bus_rounded,
         label: 'Travel',
@@ -487,7 +589,13 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const SearchAggregationPage())),
       ),
-      _QuickAction(icon: Icons.more_horiz_rounded, label: 'More', color: Colors.grey.shade600, onTap: () => _comingSoon(context, 'More services')),
+      _QuickAction(
+        icon: Icons.grid_view_rounded,
+        label: 'All Services',
+        color: Colors.grey.shade600,
+        onTap: () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const VasHubPage())),
+      ),
     ];
 
     return Column(
@@ -751,15 +859,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     );
   }
 
-  void _comingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('$feature coming soon!',
-          style: TextStyle(color: Colors.white)),
-      backgroundColor: const Color(0xff333333),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
-  }
+
 }
 
 // ─── Sub-widgets ──────────────────────────────────────────────────────────────
@@ -1068,208 +1168,298 @@ class _FundingSheetState extends State<_FundingSheet> {
         top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Fund Wallet',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xff1a1a1a),
+            const SizedBox(height: 24),
+            Text(
+              'Fund Wallet',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xff1a1a1a),
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Enter the amount you want to add',
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.grey.shade500,
-              fontSize: 13,
+            const SizedBox(height: 6),
+            Text(
+              'Select a payment method and enter amount',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.grey.shade500,
+                fontSize: 13,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          // Amount input
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade200),
-              borderRadius: BorderRadius.circular(14),
-              color: const Color(0xfff8f9fa),
+            const SizedBox(height: 24),
+
+            // ── Payment Method Cards ──
+            Text(
+              'Payment Method',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: const Color(0xff1a1a1a),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  '₦',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: _brand,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: widget.amountCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            const SizedBox(height: 12),
+            _ProviderTile(
+              icon: Icons.account_balance_rounded,
+              iconColor: const Color(0xff1565c0),
+              iconBg: const Color(0xffe3f2fd),
+              title: 'Bank Transfer',
+              subtitle: 'Transfer from any bank account instantly',
+              selected: _provider == 'bank_transfer',
+              onTap: () => setState(() => _provider = 'bank_transfer'),
+            ),
+            const SizedBox(height: 10),
+            _ProviderTile(
+              icon: Icons.credit_card_rounded,
+              iconColor: const Color(0xffe67e00),
+              iconBg: const Color(0xfffff8e1),
+              title: 'Flutterwave',
+              subtitle: 'Pay with card, bank transfer or USSD',
+              selected: _provider == 'flutterwave',
+              onTap: () => setState(() => _provider = 'flutterwave'),
+            ),
+            const SizedBox(height: 10),
+            _ProviderTile(
+              icon: Icons.swap_horiz_rounded,
+              iconColor: const Color(0xff2e7d32),
+              iconBg: const Color(0xffe8f5e9),
+              title: 'Monnify',
+              subtitle: 'Virtual account — instant settlement',
+              selected: _provider == 'monnify',
+              onTap: () => setState(() => _provider = 'monnify'),
+            ),
+            const SizedBox(height: 24),
+
+            // ── Amount Input ──
+            Text(
+              'Amount',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: const Color(0xff1a1a1a),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(14),
+                color: const Color(0xfff8f9fa),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Text(
+                    '₦',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xff1a1a1a),
+                      color: _brand,
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '0',
-                      hintStyle: GoogleFonts.plusJakartaSans(
-                        color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: widget.amountCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
+                        color: const Color(0xff1a1a1a),
+                      ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: '0',
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          color: Colors.grey.shade400,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // Quick amount chips
-          Wrap(
-            spacing: 8,
-            children: [1000, 2000, 5000, 10000, 20000].map((amt) {
-              return GestureDetector(
-                onTap: () => widget.amountCtrl.text = amt.toString(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: _brand.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _brand.withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    '₦${amt ~/ 1000}k',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: _brand,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
+            const SizedBox(height: 12),
+            // Quick amount chips
+            Wrap(
+              spacing: 8,
+              children: [1000, 2000, 5000, 10000, 20000].map((amt) {
+                return GestureDetector(
+                  onTap: () => widget.amountCtrl.text = amt.toString(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: _brand.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: _brand.withValues(alpha: 0.2)),
+                    ),
+                    child: Text(
+                      '₦${amt ~/ 1000}k',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: _brand,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          // Provider selection
-          Text(
-            'Payment Provider',
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: const Color(0xff555555),
+                );
+              }).toList(),
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _ProviderChip(
-                label: 'Flutterwave',
-                value: 'flutterwave',
-                selected: _provider == 'flutterwave',
-                onTap: () => setState(() => _provider = 'flutterwave'),
-              ),
-              const SizedBox(width: 10),
-              _ProviderChip(
-                label: 'Monnify',
-                value: 'monnify',
-                selected: _provider == 'monnify',
-                onTap: () => setState(() => _provider = 'monnify'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: () {
-                final text = widget.amountCtrl.text.trim();
-                final amount = double.tryParse(text);
-                if (amount == null || amount < 100) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Minimum amount is ₦100',
-                        style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.red.shade700,
-                  ));
-                  return;
-                }
-                Navigator.pop(context);
-                widget.onFund(amount, _provider);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _brand,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () {
+                  final text = widget.amountCtrl.text.trim();
+                  final amount = double.tryParse(text);
+                  if (amount == null || amount < 100) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Minimum amount is ₦100',
+                          style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.red.shade700,
+                    ));
+                    return;
+                  }
+                  Navigator.pop(context);
+                  widget.onFund(amount, _provider);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brand,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
-              ),
-              child: Text(
-                'Continue',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                child: Text(
+                  'Continue to Payment',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ProviderChip extends StatelessWidget {
-  final String label;
-  final String value;
+// ─── Payment Provider Tile ────────────────────────────────────────────────────
+
+class _ProviderTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final String subtitle;
   final bool selected;
   final VoidCallback onTap;
-  const _ProviderChip(
-      {required this.label,
-      required this.value,
-      required this.selected,
-      required this.onTap});
+
+  const _ProviderTile({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  static const _brand = Color(0xff0b845c);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xff0b845c) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? _brand.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? const Color(0xff0b845c) : Colors.grey.shade300,
+            color: selected ? _brand : Colors.grey.shade200,
+            width: selected ? 2 : 1,
           ),
+          boxShadow: selected
+              ? [BoxShadow(color: _brand.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
+              : [],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: selected ? Colors.white : const Color(0xff555555),
-          ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: const Color(0xff1a1a1a),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              Container(
+                width: 22,
+                height: 22,
+                decoration: const BoxDecoration(
+                  color: _brand,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
+              )
+            else
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                ),
+              ),
+          ],
         ),
       ),
     );

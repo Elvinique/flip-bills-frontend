@@ -99,12 +99,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     final result = await _repo.login(phone: event.phone, password: event.password);
     if (result != null && result['data'] != null) {
-      final data = result['data'] as Map?;
-      final user = data?['user'] as Map? ?? data ?? {};
+      final data = result['data'];
+      // Backend may return user as data.user or directly in data
+      final Map userMap;
+      if (data is Map && data['user'] is Map) {
+        userMap = data['user'] as Map;
+      } else if (data is Map) {
+        userMap = data;
+      } else {
+        userMap = {};
+      }
+      final firstName = userMap['first_name']?.toString()
+          ?? userMap['firstName']?.toString()
+          ?? '';
+      final lastName = userMap['last_name']?.toString()
+          ?? userMap['lastName']?.toString()
+          ?? '';
+      log('Login parsed name: $firstName $lastName (from keys: ${userMap.keys.toList()})');
       emit(AuthLoginSuccess(
         phone: _toE164(event.phone),
-        firstName: user['first_name']?.toString() ?? '',
-        lastName: user['last_name']?.toString() ?? '',
+        firstName: firstName,
+        lastName: lastName,
       ));
     } else {
       final msg = result?['message'] as String? ?? 'Login failed. Check your credentials.';

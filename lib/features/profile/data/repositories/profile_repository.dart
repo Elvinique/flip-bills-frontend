@@ -35,7 +35,7 @@ class ProfileRepository {
       log('GetProfile DioException: ${e.response?.statusCode} ${e.response?.data}');
       return null;
     } catch (e) {
-      log('GetProfile error: $e');
+      log('GetProfile Exception: $e');
       return null;
     }
   }

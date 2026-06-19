@@ -336,17 +336,14 @@ class _NetworkSelector extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: color,
+                      color: Colors.white,
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: Center(
-                      child: Text(
-                        code[0],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                        ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/${code.toLowerCase()}.png',
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'checkout_state.dart';
 import '../../data/repositories/transit_aggregation_repository.dart';
+import '../../../../core/database/offline_cache_handler.dart';
 
 // ─── Events ───────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,21 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
           firstBooking?['booking_id'] as String? ??
           qrData;
 
+      await OfflineCacheHandler.instance.cacheTicket(
+        ticketId: bookingId,
+        category: 'Bus Transit',
+        departure: manifest['origin'] as String,
+        destination: manifest['destination'] as String,
+        travelDate: departureDate,
+        seats: current.selectedSeats,
+        rawPayload: {
+          'operator': manifest['operator_name'] as String? ?? manifest['operator_code'] as String,
+          'vehicleRef': manifest['vehicle_ref'] as String,
+          'qrData': qrData,
+          if (firstBooking != null) ...firstBooking,
+        },
+      );
+
       emit(CheckoutSuccess(
         bookingId: bookingId,
         ticketQrData: qrData,
@@ -246,13 +262,21 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
 
       Map<String, dynamic>? firstBooking;
 
-      for (final seat in current.selectedSeats) {
-        // Assume seat mapping is standard "A1", "A2" internally represented by indexes
-        // The UI maps int -> string like 0 -> "1A". For the mock, we just pass the seat index string.
+      for (final seatIndex in current.selectedSeats) {
+        // Map UI seat index to standard alphanumeric flight seat (e.g., "1A")
+        // Assuming a standard 4 seats per row (2-2 configuration) as defined in the grid
+        final int seatsPerRow = 4;
+        final int rowIndex = seatIndex ~/ seatsPerRow;
+        final int actualCol = seatIndex % seatsPerRow;
+        
+        final String rowLabel = (rowIndex + 1).toString();
+        final String colLabel = String.fromCharCode(65 + actualCol); // A, B, C, D
+        final String seatLabel = "$rowLabel$colLabel";
+
         final result = await _repo.bookFlight(
           airlineCode: manifest['operator_code'] as String,
           flightRef: manifest['vehicle_ref'] as String,
-          seatNumber: seat.toString(),
+          seatNumber: seatLabel,
           departureDate: departureDate,
           origin: manifest['origin'] as String,
           destination: manifest['destination'] as String,
@@ -263,7 +287,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         if (result == null) {
           emit(CheckoutFailureReversal(
             message:
-                'Flight booking failed for seat $seat. Wallet has not been charged.',
+                'Flight booking failed for seat $seatLabel. Wallet has not been charged.',
           ));
           return;
         }
@@ -279,6 +303,21 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       final bookingId = firstBooking?['id'] as String? ??
           firstBooking?['booking_id'] as String? ??
           qrData;
+
+      await OfflineCacheHandler.instance.cacheTicket(
+        ticketId: bookingId,
+        category: 'Flight',
+        departure: manifest['origin'] as String,
+        destination: manifest['destination'] as String,
+        travelDate: departureDate,
+        seats: current.selectedSeats,
+        rawPayload: {
+          'airline': manifest['operator_name'] as String? ?? manifest['operator_code'] as String,
+          'flightRef': manifest['vehicle_ref'] as String,
+          'qrData': qrData,
+          if (firstBooking != null) ...firstBooking,
+        },
+      );
 
       emit(CheckoutSuccess(
         bookingId: bookingId,

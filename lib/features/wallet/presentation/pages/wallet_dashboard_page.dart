@@ -125,16 +125,15 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
       if (data != null && mounted) {
         setState(() {
           // Try both snake_case and camelCase variants
-          _firstName = data['first_name']?.toString().trim()
-              ?? data['firstName']?.toString().trim()
-              ?? _firstName;
-          _lastName  = data['last_name']?.toString().trim()
-              ?? data['lastName']?.toString().trim()
-              ?? _lastName;
-          _phone     = data['phone']?.toString().trim()       ?? _phone;
-          _dob       = data['date_of_birth']?.toString().trim()
-              ?? data['dateOfBirth']?.toString().trim()
-              ?? _dob;
+          final fetchedFirst = data['first_name']?.toString().trim() ?? data['firstName']?.toString().trim();
+          final fetchedLast = data['last_name']?.toString().trim() ?? data['lastName']?.toString().trim();
+          final fetchedPhone = data['phone']?.toString().trim();
+          final fetchedDob = data['date_of_birth']?.toString().trim() ?? data['dateOfBirth']?.toString().trim();
+
+          if (fetchedFirst != null && fetchedFirst.isNotEmpty) _firstName = fetchedFirst;
+          if (fetchedLast != null && fetchedLast.isNotEmpty) _lastName = fetchedLast;
+          if (fetchedPhone != null && fetchedPhone.isNotEmpty) _phone = fetchedPhone;
+          if (fetchedDob != null && fetchedDob.isNotEmpty) _dob = fetchedDob;
         });
       }
     } catch (_) {}

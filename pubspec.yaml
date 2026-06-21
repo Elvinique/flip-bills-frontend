@@ -28,6 +28,7 @@ dependencies:
 
   # Professional Typography & Design
   google_fonts: ^6.3.3
+  flutterwave_standard: ^1.1.0
 
 dev_dependencies:
   flutter_test:

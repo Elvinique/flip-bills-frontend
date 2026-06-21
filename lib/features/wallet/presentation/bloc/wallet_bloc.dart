@@ -79,11 +79,12 @@ class WalletTransactionsLoaded extends WalletState {
 class WalletFundingReady extends WalletState {
   final String paymentLink;
   final String reference;
+  final int amountKobo;
 
-  const WalletFundingReady({required this.paymentLink, required this.reference});
+  const WalletFundingReady({required this.paymentLink, required this.reference, required this.amountKobo});
 
   @override
-  List<Object?> get props => [paymentLink, reference];
+  List<Object?> get props => [paymentLink, reference, amountKobo];
 }
 
 class WalletError extends WalletState {
@@ -162,6 +163,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
       emit(WalletFundingReady(
         paymentLink: data['checkout_url'] as String,
         reference: data['reference'] as String? ?? '',
+        amountKobo: event.amountKobo,
       ));
     } else {
       emit(const WalletError(message: 'Failed to initialize funding. Please try again.'));

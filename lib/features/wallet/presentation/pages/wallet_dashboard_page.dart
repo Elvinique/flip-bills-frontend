@@ -13,6 +13,7 @@ import '../../../../features/vas/presentation/pages/betting_page.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
 import '../../../../features/profile/data/repositories/profile_repository.dart';
+import 'package:flutterwave_standard/flutterwave.dart';
 import '../../../../features/profile/presentation/pages/profile_page.dart';
 import '../../../../features/profile/presentation/pages/change_password_page.dart';
 import '../../../../features/profile/presentation/pages/help_support_page.dart';
@@ -75,6 +76,7 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
 
   // User info — seeded from registration props, then overwritten by profile API
   String _firstName = '';
+  String _email = '';
   String _lastName  = '';
   String _phone     = '';
   String _dob       = '';
@@ -129,11 +131,13 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
           final fetchedLast = data['last_name']?.toString().trim() ?? data['lastName']?.toString().trim();
           final fetchedPhone = data['phone']?.toString().trim();
           final fetchedDob = data['date_of_birth']?.toString().trim() ?? data['dateOfBirth']?.toString().trim();
+          final fetchedEmail = data['email']?.toString().trim();
 
           if (fetchedFirst != null && fetchedFirst.isNotEmpty) _firstName = fetchedFirst;
           if (fetchedLast != null && fetchedLast.isNotEmpty) _lastName = fetchedLast;
           if (fetchedPhone != null && fetchedPhone.isNotEmpty) _phone = fetchedPhone;
           if (fetchedDob != null && fetchedDob.isNotEmpty) _dob = fetchedDob;
+          if (fetchedEmail != null && fetchedEmail.isNotEmpty) _email = fetchedEmail;
         });
       }
     } catch (_) {}
@@ -744,23 +748,45 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     );
   }
 
-  void _showFundingSheet(BuildContext context, WalletFundingReady state) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        'Payment link ready. Ref: ${state.reference}',
-        style: TextStyle(color: Colors.white),
-      ),
-      backgroundColor: _brand,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      action: SnackBarAction(
-        label: 'Open',
-        textColor: Colors.white,
-        onPressed: () {
-          // Launch payment_link via url_launcher when added
-        },
-      ),
-    ));
+  Future<void> _showFundingSheet(BuildContext context, WalletFundingReady state) async {
+    final customer = Customer(
+      name: '$_firstName $_lastName'.trim().isEmpty ? 'Flip Bills User' : '$_firstName $_lastName'.trim(),
+      phoneNumber: _phone,
+      email: _email.isNotEmpty ? _email : 'user@flipbills.com',
+    );
+
+    final flutterwave = Flutterwave(
+      publicKey: const String.fromEnvironment('FLUTTERWAVE_PUBLIC_KEY', defaultValue: ''),
+      currency: 'NGN',
+      redirectUrl: 'https://flip-bills-backend-production.up.railway.app/webhooks/flutterwave',
+      txRef: state.reference,
+      amount: (state.amountKobo / 100).toStringAsFixed(2),
+      customer: customer,
+      paymentOptions: 'card, banktransfer, ussd',
+      customization: Customization(title: 'Fund Flip Bills Wallet'),
+      isTestMode: false,
+    );
+
+    final ChargeResponse? response = await flutterwave.charge(context);
+
+    if (!context.mounted) return;
+
+    if (response != null && response.success == true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Payment submitted. Wallet will update shortly.', style: TextStyle(color: Colors.white)),
+        backgroundColor: _brand,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+      context.read<WalletBloc>().add(WalletRefreshRequested());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Payment was not completed.', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
   }
 
   void _showProfileMenu(BuildContext context) {

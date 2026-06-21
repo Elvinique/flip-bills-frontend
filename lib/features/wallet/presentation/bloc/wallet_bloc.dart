@@ -158,9 +158,9 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
       amountKobo: event.amountKobo,
       provider: event.provider,
     );
-    if (data != null && data['payment_link'] != null) {
+    if (data != null && data['checkout_url'] != null) {
       emit(WalletFundingReady(
-        paymentLink: data['payment_link'] as String,
+        paymentLink: data['checkout_url'] as String,
         reference: data['reference'] as String? ?? '',
       ));
     } else {

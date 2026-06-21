@@ -21,19 +21,21 @@ class AuthLoginRequested extends AuthEvent {
 
 class AuthRegisterRequested extends AuthEvent {
   final String phone;
+  final String email;
   final String password;
   final String firstName;
   final String lastName;
   final String dateOfBirth;
   const AuthRegisterRequested({
     required this.phone,
+    required this.email,
     required this.password,
     required this.firstName,
     required this.lastName,
     required this.dateOfBirth,
   });
   @override
-  List<Object?> get props => [phone, password, firstName, lastName, dateOfBirth];
+  List<Object?> get props => [phone, email, password, firstName, lastName, dateOfBirth];
 }
 
 class AuthReset extends AuthEvent {}
@@ -133,6 +135,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final result = await _repo.register(
       phone: e164,
+      email: event.email,
       password: event.password,
       firstName: event.firstName,
       lastName: event.lastName,

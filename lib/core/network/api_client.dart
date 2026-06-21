@@ -22,7 +22,7 @@ class ApiClient {
     ),
   );
 
-  static const String baseUrl = 'https://flip-bills-api.onrender.com';
+  static const String baseUrl = 'https://flip-bills-backend-production.up.railway.app';
 
   ApiClient._internal() {
     dio = Dio(

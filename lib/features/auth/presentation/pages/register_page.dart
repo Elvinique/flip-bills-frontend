@@ -18,6 +18,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
   final _lastNameCtrl  = TextEditingController();
   final _dobCtrl       = TextEditingController();
   final _phoneCtrl     = TextEditingController();
+  final _emailCtrl     = TextEditingController();
   final _passwordCtrl  = TextEditingController();
   final _confirmCtrl   = TextEditingController();
 
@@ -49,6 +50,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     _lastNameCtrl.dispose();
     _dobCtrl.dispose();
     _phoneCtrl.dispose();
+    _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     _fadeCtrl.dispose();
@@ -353,6 +355,15 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             formatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           const SizedBox(height: 20),
+          _label('Email Address'),
+          const SizedBox(height: 8),
+          _textField(
+            controller: _emailCtrl,
+            hint: 'ade@example.com',
+            icon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 20),
           _label('Password'),
           const SizedBox(height: 8),
           TextFormField(
@@ -450,6 +461,11 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     if (phone.length < 10 || phone.length > 11) {
       _showSnack('Enter a valid Nigerian phone number (10 or 11 digits).', isError: true); return;
     }
+    final email = _emailCtrl.text.trim();
+    final emailRegex = RegExp(r'^[\w\.\-\+]+@[\w\-]+\.[\w\-\.]+$');
+    if (email.isEmpty || !emailRegex.hasMatch(email)) {
+      _showSnack('Please enter a valid email address.', isError: true); return;
+    }
     if (pass.length < 8) {
       _showSnack('Password must be at least 8 characters.', isError: true); return;
     }
@@ -468,6 +484,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
 
     context.read<AuthBloc>().add(AuthRegisterRequested(
       phone: phone,
+      email: email,
       password: pass,
       firstName: _firstNameCtrl.text.trim(),
       lastName: _lastNameCtrl.text.trim(),

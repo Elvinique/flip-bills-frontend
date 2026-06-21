@@ -31,6 +31,7 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> register({
     required String phone,
+    required String email,
     required String password,
     required String firstName,
     required String lastName,
@@ -41,6 +42,7 @@ class AuthRepository {
       final e164 = phone.startsWith('+') ? phone : _toE164(phone);
       final payload = <String, dynamic>{
         'phone': e164,
+        'email': email,
         'password': password,
         'password_confirmation': password,
         'first_name': firstName,

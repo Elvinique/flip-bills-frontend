@@ -204,6 +204,46 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             Expanded(child: Divider(color: Colors.grey.shade200)),
                           ]),
 
+                          const SizedBox(height: 24),
+
+                          SizedBox(
+                            width: double.infinity, height: 54,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                context.read<AuthBloc>().add(AuthGoogleSignInRequested());
+                              },
+                              icon: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ]
+                                ),
+                                child: Text(' G ', style: GoogleFonts.plusJakartaSans(color: Colors.red, fontWeight: FontWeight.w800, fontSize: 16)),
+                              ),
+                              label: Text(
+                                'Sign in with Google',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: _ink,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.grey.shade300),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                backgroundColor: Colors.white,
+                                elevation: 0,
+                              ),
+                            ),
+                          ),
+
                           const SizedBox(height: 32),
 
                           Center(

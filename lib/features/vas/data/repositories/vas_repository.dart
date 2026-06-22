@@ -113,6 +113,29 @@ class VasRepository {
     }
   }
 
+  // ── TV / Cable ────────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> payTvCable({
+    required String smartCardNumber,
+    required String provider,
+    required String planCode,
+  }) async {
+    try {
+      final response = await _client.dio.post('/api/v1/vas/tv-cable', data: {
+        'smart_card_number': smartCardNumber,
+        'provider': provider,
+        'plan_code': planCode,
+      });
+      if (response.statusCode == 200) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      log('TV cable payment error: $e');
+      return null;
+    }
+  }
+
   // ── Transaction lookup ────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>?> getTransaction(String reference) async {

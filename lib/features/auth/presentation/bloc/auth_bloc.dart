@@ -38,6 +38,8 @@ class AuthRegisterRequested extends AuthEvent {
   List<Object?> get props => [phone, email, password, firstName, lastName, dateOfBirth];
 }
 
+class AuthGoogleSignInRequested extends AuthEvent {}
+
 class AuthReset extends AuthEvent {}
 
 // ─── States ───────────────────────────────────────────────────────────────────
@@ -94,7 +96,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthInitial()) {
     on<AuthLoginRequested>(_onLogin);
     on<AuthRegisterRequested>(_onRegister);
+    on<AuthGoogleSignInRequested>(_onGoogleSignIn);
     on<AuthReset>((_, emit) => emit(AuthInitial()));
+  }
+
+  Future<void> _onGoogleSignIn(AuthGoogleSignInRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final result = await _repo.googleSignIn();
+    if (result != null && result['data'] != null) {
+      final data = result['data'];
+      final Map userMap;
+      if (data is Map && data['user'] is Map) {
+        userMap = data['user'] as Map;
+      } else if (data is Map) {
+        userMap = data;
+      } else {
+        userMap = {};
+      }
+      final firstName = userMap['first_name']?.toString()
+          ?? userMap['firstName']?.toString()
+          ?? '';
+      final lastName = userMap['last_name']?.toString()
+          ?? userMap['lastName']?.toString()
+          ?? '';
+      final phone = userMap['phone']?.toString() ?? '+2340000000000'; // Fallback if no phone
+      log('Google Login parsed name: $firstName $lastName');
+      emit(AuthLoginSuccess(
+        phone: phone,
+        firstName: firstName,
+        lastName: lastName,
+      ));
+    } else {
+      final msg = result?['message'] as String? ?? 'Google Sign-In failed.';
+      emit(AuthFailure(message: msg));
+    }
   }
 
   Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {

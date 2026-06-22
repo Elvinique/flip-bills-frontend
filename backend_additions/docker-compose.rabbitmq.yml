@@ -1,0 +1,29 @@
+version: "3.9"
+
+# ── Add this service to your existing docker-compose.yml ──────────────────────
+# Copy the `rabbitmq` service block and the `rabbitmq_data` volume entry
+# into the existing backend docker-compose.yml
+
+services:
+  # ── RabbitMQ — Async event queue for webhooks + notifications ─────────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fb_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: flipbills
+      RABBITMQ_DEFAULT_PASS: rabbitsecret
+      RABBITMQ_DEFAULT_VHOST: flipbills
+    ports:
+      - "5672:5672"       # AMQP
+      - "15672:15672"     # Management UI (disable in production)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq_data:

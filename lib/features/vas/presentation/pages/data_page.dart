@@ -117,43 +117,16 @@ class _DataPageState extends State<DataPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Network tabs
+              // Network selector with logos
               _label('Network'),
               const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: widget.networks.map((n) {
-                    final code = n['code'] as String;
-                    final selected = _selectedNetwork == code;
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedNetwork = code;
-                        _selectedPlan = null;
-                      }),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: selected ? _brand : Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: selected ? _brand : Colors.grey.shade300,
-                          ),
-                        ),
-                        child: Text(
-                          code,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: selected ? Colors.white : Colors.grey.shade700,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+              _DataNetworkSelector(
+                networks: widget.networks,
+                selected: _selectedNetwork,
+                onSelect: (code) => setState(() {
+                  _selectedNetwork = code;
+                  _selectedPlan = null;
+                }),
               ),
               const SizedBox(height: 20),
 
@@ -312,4 +285,91 @@ class _DataPageState extends State<DataPage> {
           ),
         ),
       );
+}
+
+// ── Network selector with logos ───────────────────────────────────────────────
+
+class _DataNetworkSelector extends StatelessWidget {
+  final List<Map<String, dynamic>> networks;
+  final String? selected;
+  final ValueChanged<String> onSelect;
+
+  const _DataNetworkSelector({
+    required this.networks,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  static const Map<String, Color> _networkColors = {
+    'MTN': Color(0xffffcc00),
+    'GLO': Color(0xff4caf50),
+    'AIRTEL': Color(0xffe53935),
+    '9MOBILE': Color(0xff00897b),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: networks.map((n) {
+        final code = n['code'] as String;
+        final isSelected = selected == code;
+        final color = _networkColors[code] ?? const Color(0xff0b845c);
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => onSelect(code),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? color.withValues(alpha: 0.12) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade200,
+                  width: isSelected ? 2 : 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/${code.toLowerCase()}.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Text(
+                            code[0],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    code,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? color : Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
 }

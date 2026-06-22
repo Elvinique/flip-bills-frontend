@@ -15,7 +15,7 @@ dependencies:
   equatable: ^2.0.8
 
   # Network Pooling (Parallel Worker API Client)
-  dio: ^5.9.2 # <-- ADD THIS LINE HERE
+  dio: ^5.9.2
 
   # Cryptographic Storage & Database Matrix
   sqflite: ^2.4.2+1
@@ -29,6 +29,20 @@ dependencies:
   # Professional Typography & Design
   google_fonts: ^6.3.3
   flutterwave_standard: ^1.1.0
+
+  # Navigation — Named routes with auth guards
+  go_router: ^14.3.0
+
+  # QR Code generation (offline tickets)
+  qr_flutter: ^4.1.0
+
+  # Internationalisation & currency formatting
+  intl: ^0.19.0
+
+  # Runtime permissions (notifications)
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.0
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:

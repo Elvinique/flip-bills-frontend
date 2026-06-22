@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/network/api_client.dart';
 
 class AuthRepository {
@@ -105,6 +106,53 @@ class AuthRepository {
       return {'success': false, 'message': msg, 'data': null};
     } catch (e) {
       log('Login error: $e');
+      return {'success': false, 'message': 'An unexpected error occurred.', 'data': null};
+    }
+  }
+
+  // ── Google Sign In ─────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> googleSignIn() async {
+    try {
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        log('Google Sign-In canceled by user');
+        return {'success': false, 'message': 'Google Sign-In canceled.'};
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        log('Failed to get Google idToken');
+        return {'success': false, 'message': 'Failed to retrieve Google authentication token.'};
+      }
+
+      log('Google Sign-In success, sending token to backend');
+      
+      final response = await _client.dio.post(
+        '/api/v1/auth/google',
+        data: {'id_token': idToken},
+        options: Options(contentType: 'application/json'),
+      );
+
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        final data = response.data['data'];
+        await _client.saveTokens(
+          accessToken: data['access_token'],
+          refreshToken: data['refresh_token'],
+        );
+        log('Google Login success — token saved in memory');
+      }
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      log('Google Login DioException: ${e.response?.statusCode} ${e.response?.data}');
+      final msg = _extractErrorMessage(e, 'Failed to authenticate with Google.');
+      return {'success': false, 'message': msg, 'data': null};
+    } catch (e) {
+      log('Google Login error: $e');
       return {'success': false, 'message': 'An unexpected error occurred.', 'data': null};
     }
   }

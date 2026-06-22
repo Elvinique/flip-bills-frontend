@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/wallet_bloc.dart';
-import '../../../../features/checkout/presentation/pages/search_aggregation_page.dart';
 import '../../../../features/vas/presentation/pages/vas_hub_page.dart';
 import '../../../../features/vas/presentation/bloc/vas_bloc.dart';
 import '../../../../features/vas/presentation/pages/airtime_page.dart';
 import '../../../../features/vas/presentation/pages/data_page.dart';
 import '../../../../features/vas/presentation/pages/electricity_page.dart';
 import '../../../../features/vas/presentation/pages/betting_page.dart';
+import '../../../../features/vas/presentation/pages/tv_cable_page.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../features/auth/presentation/pages/login_page.dart';
 import '../../../../features/profile/data/repositories/profile_repository.dart';
@@ -18,7 +18,12 @@ import '../../../../features/profile/presentation/pages/profile_page.dart';
 import '../../../../features/profile/presentation/pages/change_password_page.dart';
 import '../../../../features/profile/presentation/pages/help_support_page.dart';
 import '../../../../features/checkout/presentation/pages/offline_travel_passes_page.dart';
+import '../../../../features/transfer/presentation/bloc/transfer_bloc.dart';
+import '../../../../features/transfer/presentation/pages/transfer_page.dart';
+import 'virtual_account_page.dart';
 import 'loyalty_rewards_page.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../features/travel/presentation/pages/travel_dashboard_page.dart';
 
 class WalletDashboardPage extends StatelessWidget {
   final String? initialFirstName;
@@ -526,6 +531,13 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
       {'code': '1XBET', 'name': '1xBet'},
     ];
 
+    const tvProviders = <Map<String, dynamic>>[
+      {'code': 'DSTV', 'name': 'DStv'},
+      {'code': 'GOTV', 'name': 'GOtv'},
+      {'code': 'STARTIMES', 'name': 'Startimes'},
+      {'code': 'SHOWMAX', 'name': 'Showmax'},
+    ];
+
     Widget page;
     switch (vasKey) {
       case 'airtime':
@@ -550,6 +562,12 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         page = BlocProvider.value(
           value: bloc,
           child: const BettingPage(providers: bettingProviders),
+        );
+        break;
+      case 'tv-cable':
+        page = BlocProvider.value(
+          value: bloc,
+          child: const TvCablePage(providers: tvProviders),
         );
         break;
       default:
@@ -580,6 +598,26 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         onTap: () => _openVasPage(context, 'electricity'),
       ),
       _QuickAction(
+        icon: Icons.tv_rounded,
+        label: 'TV/Cable',
+        color: const Color(0xff16213e),
+        onTap: () => _openVasPage(context, 'tv-cable'),
+      ),
+      _QuickAction(
+        icon: Icons.send_rounded,
+        label: 'Transfer',
+        color: const Color(0xff2ecc71),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider(
+              create: (_) => TransferBloc(),
+              child: const TransferPage(),
+            ),
+          ),
+        ),
+      ),
+      _QuickAction(
         icon: Icons.sports_soccer_rounded,
         label: 'Betting',
         color: const Color(0xffe74c3c),
@@ -590,11 +628,11 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         label: 'Travel',
         color: _brand,
         onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const SearchAggregationPage())),
+            MaterialPageRoute(builder: (_) => const TravelDashboardPage())),
       ),
       _QuickAction(
         icon: Icons.grid_view_rounded,
-        label: 'All Services',
+        label: 'More',
         color: Colors.grey.shade600,
         onTap: () => Navigator.push(
           context, MaterialPageRoute(builder: (_) => const VasHubPage())),
@@ -604,22 +642,51 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xff1a1a1a),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Quick Actions',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xff1a1a1a),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const VirtualAccountPage())),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _brand.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _brand.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.account_balance_rounded, color: _brand, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Virtual Account',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: _brand, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         GridView.count(
-          crossAxisCount: 3,
+          crossAxisCount: 4,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.1,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.9,
           children: actions.map((a) => _QuickActionTile(action: a)).toList(),
         ),
       ],
@@ -749,43 +816,66 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
   }
 
   Future<void> _showFundingSheet(BuildContext context, WalletFundingReady state) async {
-    final customer = Customer(
-      name: '$_firstName $_lastName'.trim().isEmpty ? 'Flip Bills User' : '$_firstName $_lastName'.trim(),
-      phoneNumber: _phone,
-      email: _email.isNotEmpty ? _email : 'user@flipbills.com',
-    );
+    if (state.provider == 'flutterwave') {
+      final customer = Customer(
+        name: '$_firstName $_lastName'.trim().isEmpty ? 'Flip Bills User' : '$_firstName $_lastName'.trim(),
+        phoneNumber: _phone,
+        email: _email.isNotEmpty ? _email : 'user@flipbills.com',
+      );
 
-    final flutterwave = Flutterwave(
-      publicKey: const String.fromEnvironment('FLUTTERWAVE_PUBLIC_KEY', defaultValue: ''),
-      currency: 'NGN',
-      redirectUrl: 'https://flip-bills-backend-production.up.railway.app/webhooks/flutterwave',
-      txRef: state.reference,
-      amount: (state.amountKobo / 100).toStringAsFixed(2),
-      customer: customer,
-      paymentOptions: 'card, banktransfer, ussd',
-      customization: Customization(title: 'Fund Flip Bills Wallet'),
-      isTestMode: false,
-    );
+      final flutterwave = Flutterwave(
+        publicKey: const String.fromEnvironment('FLUTTERWAVE_PUBLIC_KEY', defaultValue: ''),
+        currency: 'NGN',
+        redirectUrl: 'https://flip-bills-backend-production.up.railway.app/webhooks/flutterwave',
+        txRef: state.reference,
+        amount: (state.amountKobo / 100).toStringAsFixed(2),
+        customer: customer,
+        paymentOptions: 'card, banktransfer, ussd',
+        customization: Customization(title: 'Fund Flip Bills Wallet'),
+        isTestMode: false,
+      );
 
-    final ChargeResponse? response = await flutterwave.charge(context);
+      final ChargeResponse? response = await flutterwave.charge(context);
 
-    if (!context.mounted) return;
+      if (!context.mounted) return;
 
-    if (response != null && response.success == true) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Payment submitted. Wallet will update shortly.', style: TextStyle(color: Colors.white)),
-        backgroundColor: _brand,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ));
-      context.read<WalletBloc>().add(WalletRefreshRequested());
+      if (response != null && response.success == true) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Payment submitted. Wallet will update shortly.', style: TextStyle(color: Colors.white)),
+          backgroundColor: _brand,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+        context.read<WalletBloc>().add(WalletRefreshRequested());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Payment was not completed.', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Payment was not completed.', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ));
+      // For Monnify, OPay, or other providers returning a checkout URL
+      final url = Uri.parse(state.paymentLink);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.inAppWebView);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Please complete the payment in the secure view.', style: TextStyle(color: Colors.white)),
+          backgroundColor: _brand,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      } else {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Could not open payment link.', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
     }
   }
 
@@ -1265,6 +1355,16 @@ class _FundingSheetState extends State<_FundingSheet> {
               subtitle: 'Virtual account — instant settlement',
               selected: _provider == 'monnify',
               onTap: () => setState(() => _provider = 'monnify'),
+            ),
+            const SizedBox(height: 10),
+            _ProviderTile(
+              icon: Icons.account_balance_wallet_rounded,
+              iconColor: const Color(0xff00b0ff),
+              iconBg: const Color(0xffe1f5fe),
+              title: 'OPay',
+              subtitle: 'Fast payment via OPay network',
+              selected: _provider == 'opay',
+              onTap: () => setState(() => _provider = 'opay'),
             ),
             const SizedBox(height: 24),
 

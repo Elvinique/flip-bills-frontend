@@ -62,4 +62,18 @@ class VasFundBetting extends VasEvent {
   List<Object?> get props => [customerId, provider, amountKobo];
 }
 
+class VasPurchaseTvCable extends VasEvent {
+  final String smartCardNumber;
+  final String provider;
+  final String planCode;
+  const VasPurchaseTvCable({
+    required this.smartCardNumber,
+    required this.provider,
+    required this.planCode,
+  });
+  @override
+  List<Object?> get props => [smartCardNumber, provider, planCode];
+}
+
 class VasReset extends VasEvent {}
+

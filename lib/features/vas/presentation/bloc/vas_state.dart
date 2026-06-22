@@ -34,15 +34,17 @@ class VasSuccess extends VasState {
   final String message;
   final String? reference;
   final String? token; // electricity token if applicable
+  final Map<String, dynamic> data;
 
   const VasSuccess({
     required this.message,
     this.reference,
     this.token,
+    this.data = const {},
   });
 
   @override
-  List<Object?> get props => [message, reference, token];
+  List<Object?> get props => [message, reference, token, data];
 }
 
 class VasFailure extends VasState {

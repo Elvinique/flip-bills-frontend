@@ -69,7 +69,7 @@ class VasBloc extends Bloc<VasEvent, VasState> {
     emit(VasProcessing());
     try {
       final result = await _repo.buyAirtime(
-        phone: event.phone, amountKobo: event.amountKobo, network: event.network,
+        phone: event.phone, amountKobo: event.amountKobo, network: event.network, transactionPin: event.transactionPin,
       ).timeout(const Duration(seconds: 45));
       if (result != null) {
         emit(VasSuccess(message: 'Airtime sent to ${event.phone}', reference: result['reference'] as String?, data: result));
@@ -80,8 +80,9 @@ class VasBloc extends Bloc<VasEvent, VasState> {
       emit(const VasReconciling(message: 'Primary endpoint timeout. Rerouting via backup aggregator...'));
       await Future.delayed(const Duration(seconds: 3));
       emit(VasReversal(message: 'All routes failed. ₦${(event.amountKobo / 100).toStringAsFixed(0)} safely reversed to your wallet.', reference: 'REV-${DateTime.now().millisecondsSinceEpoch}'));
-    } catch (_) {
-      emit(const VasFailure(message: 'Airtime purchase failed. Please try again.'));
+    } catch (e) {
+      final msg = e.toString().replaceAll('Exception: ', '');
+      emit(VasFailure(message: msg));
     }
   }
 
@@ -89,7 +90,7 @@ class VasBloc extends Bloc<VasEvent, VasState> {
     emit(VasProcessing());
     try {
       final result = await _repo.buyData(
-        phone: event.phone, network: event.network, planCode: event.planCode,
+        phone: event.phone, network: event.network, planCode: event.planCode, transactionPin: event.transactionPin,
       ).timeout(const Duration(seconds: 45));
       if (result != null) {
         emit(VasSuccess(message: 'Data bundle activated on ${event.phone}', reference: result['reference'] as String?, data: result));
@@ -100,8 +101,9 @@ class VasBloc extends Bloc<VasEvent, VasState> {
       emit(const VasReconciling(message: 'Primary endpoint timeout. Rerouting via backup aggregator...'));
       await Future.delayed(const Duration(seconds: 3));
       emit(VasReversal(message: 'All routes failed. Funds safely reversed to your wallet.', reference: 'REV-${DateTime.now().millisecondsSinceEpoch}'));
-    } catch (_) {
-      emit(const VasFailure(message: 'Data purchase failed. Please try again.'));
+    } catch (e) {
+      final msg = e.toString().replaceAll('Exception: ', '');
+      emit(VasFailure(message: msg));
     }
   }
 
@@ -109,7 +111,7 @@ class VasBloc extends Bloc<VasEvent, VasState> {
     emit(VasProcessing());
     try {
       final result = await _repo.payElectricity(
-        meterNumber: event.meterNumber, disco: event.disco, amountKobo: event.amountKobo, meterType: event.meterType,
+        meterNumber: event.meterNumber, disco: event.disco, amountKobo: event.amountKobo, meterType: event.meterType, transactionPin: event.transactionPin,
       ).timeout(const Duration(seconds: 45));
       if (result != null) {
         final token = result['token'] as String? ?? result['meter_token'] as String?;
@@ -130,7 +132,7 @@ class VasBloc extends Bloc<VasEvent, VasState> {
     emit(VasProcessing());
     try {
       final result = await _repo.fundBetting(
-        customerId: event.customerId, provider: event.provider, amountKobo: event.amountKobo,
+        customerId: event.customerId, provider: event.provider, amountKobo: event.amountKobo, transactionPin: event.transactionPin,
       ).timeout(const Duration(seconds: 45));
       if (result != null) {
         emit(VasSuccess(message: '${event.provider} wallet funded successfully.', reference: result['reference'] as String?, data: result));

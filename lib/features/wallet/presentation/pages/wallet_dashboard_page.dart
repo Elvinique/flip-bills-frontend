@@ -24,6 +24,7 @@ import 'virtual_account_page.dart';
 import 'loyalty_rewards_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../features/travel/presentation/pages/travel_dashboard_page.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class WalletDashboardPage extends StatelessWidget {
   final String? initialFirstName;
@@ -823,8 +824,22 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
         email: _email.isNotEmpty ? _email : 'user@flipbills.com',
       );
 
+      final publicKey = const String.fromEnvironment('FLUTTERWAVE_PUBLIC_KEY', defaultValue: 'FLWPUBK-9f6502852c9dd3bdcd80bc640cc03d0f-X');
+
+      if (publicKey.isEmpty) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Missing FLUTTERWAVE_PUBLIC_KEY. Please run the app with --dart-define=FLUTTERWAVE_PUBLIC_KEY=YOUR_KEY', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+        return;
+      }
+
       final flutterwave = Flutterwave(
-        publicKey: const String.fromEnvironment('FLUTTERWAVE_PUBLIC_KEY', defaultValue: ''),
+        publicKey: publicKey,
         currency: 'NGN',
         redirectUrl: 'https://flip-bills-backend-production.up.railway.app/webhooks/flutterwave',
         txRef: state.reference,
@@ -958,6 +973,9 @@ class _WalletDashboardViewState extends State<_WalletDashboardView>
               onTap: () async {
                 Navigator.pop(context); // close the bottom sheet
                 await ApiClient.instance.clearTokens();
+                try {
+                  await GoogleSignIn().signOut();
+                } catch (_) {}
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
@@ -1602,13 +1620,16 @@ class _ProfileMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? const Color(0xff1a1a1a);
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: c, size: 22),
-      title: Text(label,
-          style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w600, fontSize: 14, color: c)),
-      onTap: onTap,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon, color: c, size: 22),
+        title: Text(label,
+            style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600, fontSize: 14, color: c)),
+        onTap: onTap,
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 
 class VasRepository {
@@ -25,12 +26,14 @@ class VasRepository {
     required String phone,
     required int amountKobo,
     required String network,
+    required String transactionPin,
   }) async {
     try {
       final response = await _client.dio.post('/api/v1/vas/airtime', data: {
         'phone': phone,
         'amount': amountKobo,
         'network': network,
+        'transaction_pin': transactionPin,
       });
       if (response.statusCode == 200) {
         return response.data['data'] as Map<String, dynamic>?;
@@ -38,7 +41,8 @@ class VasRepository {
       return null;
     } catch (e) {
       log('Airtime purchase error: $e');
-      return null;
+      final msg = _extractErrorMessage(e, 'Airtime purchase failed. Please try again.');
+      throw Exception(msg);
     }
   }
 
@@ -48,12 +52,14 @@ class VasRepository {
     required String phone,
     required String network,
     required String planCode,
+    required String transactionPin,
   }) async {
     try {
       final response = await _client.dio.post('/api/v1/vas/data', data: {
         'phone': phone,
         'network': network,
         'plan_code': planCode,
+        'transaction_pin': transactionPin,
       });
       if (response.statusCode == 200) {
         return response.data['data'] as Map<String, dynamic>?;
@@ -61,7 +67,8 @@ class VasRepository {
       return null;
     } catch (e) {
       log('Data purchase error: $e');
-      return null;
+      final msg = _extractErrorMessage(e, 'Data purchase failed. Please try again.');
+      throw Exception(msg);
     }
   }
 
@@ -71,6 +78,7 @@ class VasRepository {
     required String meterNumber,
     required String disco,
     required int amountKobo,
+    required String transactionPin,
     String meterType = 'prepaid',
   }) async {
     try {
@@ -79,6 +87,7 @@ class VasRepository {
         'disco': disco,
         'amount': amountKobo,
         'meter_type': meterType,
+        'transaction_pin': transactionPin,
       });
       if (response.statusCode == 200) {
         return response.data['data'] as Map<String, dynamic>?;
@@ -96,12 +105,14 @@ class VasRepository {
     required String customerId,
     required String provider,
     required int amountKobo,
+    required String transactionPin,
   }) async {
     try {
       final response = await _client.dio.post('/api/v1/vas/betting', data: {
         'customer_id': customerId,
         'provider': provider,
         'amount': amountKobo,
+        'transaction_pin': transactionPin,
       });
       if (response.statusCode == 200) {
         return response.data['data'] as Map<String, dynamic>?;
@@ -150,5 +161,17 @@ class VasRepository {
       log('VAS transaction lookup error: $e');
       return null;
     }
+  }
+
+  String _extractErrorMessage(dynamic e, String defaultMsg) {
+    if (e is DioException) {
+      if (e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        if (data['message'] != null) {
+          return data['message'].toString();
+        }
+      }
+    }
+    return defaultMsg;
   }
 }

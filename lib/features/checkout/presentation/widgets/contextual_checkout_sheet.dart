@@ -222,17 +222,20 @@ class _ContextualCheckoutSheetState extends State<ContextualCheckoutSheet> {
                 color: _greenLight,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: CheckboxListTile(
-                title: Text(
-                  'Pay your AEDC electricity bill now and get 5% cashback.',
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: _ink),
+              child: Material(
+                color: Colors.transparent,
+                child: CheckboxListTile(
+                  title: Text(
+                    'Pay your AEDC electricity bill now and get 5% cashback.',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12, fontWeight: FontWeight.w600, color: _ink),
+                  ),
+                  value: _addCrossSell,
+                  activeColor: _green,
+                  onChanged: (v) => setState(() => _addCrossSell = v ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                value: _addCrossSell,
-                activeColor: _green,
-                onChanged: (v) => setState(() => _addCrossSell = v ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               ),
             ),
             const SizedBox(height: 24),

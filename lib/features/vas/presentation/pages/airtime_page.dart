@@ -16,6 +16,7 @@ class AirtimePage extends StatefulWidget {
 class _AirtimePageState extends State<AirtimePage> {
   final _phoneCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
   String? _selectedNetwork;
 
   static const _brand = Color(0xff0b845c);
@@ -33,6 +34,7 @@ class _AirtimePageState extends State<AirtimePage> {
   void dispose() {
     _phoneCtrl.dispose();
     _amountCtrl.dispose();
+    _pinCtrl.dispose();
     super.dispose();
   }
 
@@ -40,6 +42,8 @@ class _AirtimePageState extends State<AirtimePage> {
     final phone = _phoneCtrl.text.trim();
     final amountText = _amountCtrl.text.trim().replaceAll(',', '');
     final amount = int.tryParse(amountText);
+
+    final pin = _pinCtrl.text.trim();
 
     if (phone.length < 11) {
       _showError('Enter a valid 11-digit phone number.');
@@ -53,11 +57,16 @@ class _AirtimePageState extends State<AirtimePage> {
       _showError('Please select a network.');
       return;
     }
+    if (pin.length != 6) {
+      _showError('Enter your 6-digit transaction PIN.');
+      return;
+    }
 
     context.read<VasBloc>().add(VasBuyAirtime(
           phone: phone,
           amountKobo: amount * 100,
           network: _selectedNetwork!,
+          transactionPin: pin,
         ));
   }
 
@@ -179,6 +188,21 @@ class _AirtimePageState extends State<AirtimePage> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (_) => setState(() {}),
               ),
+              const SizedBox(height: 20),
+
+              // Transaction PIN
+              _SectionLabel('Transaction PIN'),
+              const SizedBox(height: 10),
+              _InputField(
+                controller: _pinCtrl,
+                hint: '******',
+                keyboardType: TextInputType.number,
+                isPassword: true,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+              ),
               const SizedBox(height: 32),
 
               // Submit
@@ -244,13 +268,14 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-class _InputField extends StatelessWidget {
+class _InputField extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
   final String? prefix;
   final TextInputType keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
+  final bool isPassword;
 
   const _InputField({
     required this.controller,
@@ -259,7 +284,21 @@ class _InputField extends StatelessWidget {
     required this.keyboardType,
     this.inputFormatters,
     this.onChanged,
+    this.isPassword = false,
   });
+
+  @override
+  State<_InputField> createState() => _InputFieldState();
+}
+
+class _InputFieldState extends State<_InputField> {
+  late bool _obscure;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.isPassword;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,19 +309,30 @@ class _InputField extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        inputFormatters: inputFormatters,
-        onChanged: onChanged,
+        controller: widget.controller,
+        keyboardType: widget.keyboardType,
+        inputFormatters: widget.inputFormatters,
+        onChanged: widget.onChanged,
+        obscureText: _obscure,
         style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: widget.hint,
           hintStyle: TextStyle(color: Colors.grey.shade400),
-          prefixText: prefix,
+          prefixText: widget.prefix,
           prefixStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
+          suffixIcon: widget.isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),

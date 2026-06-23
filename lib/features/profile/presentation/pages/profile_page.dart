@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/repositories/profile_repository.dart';
+import '../../../auth/presentation/pages/pin_setup_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? seedFirstName;
@@ -269,6 +270,43 @@ class _ProfilePageState extends State<ProfilePage> {
                         }
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 32),
+                    _SectionLabel(label: 'Security'),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PinSetupPage(),
+                              ),
+                            );
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          leading: const Icon(Icons.pin_outlined, color: _brand),
+                          title: Text(
+                            'Set Transaction PIN',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xff1a1a1a),
+                            ),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                              size: 16, color: Colors.grey),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 32),
                     if (_edited)

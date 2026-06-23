@@ -301,18 +301,21 @@ Future<void> _loadWalletBalance() async {
             decoration: const InputDecoration(labelText: 'To (Destination State)', border: InputBorder.none, prefixIcon: Icon(Icons.location_on, color: Colors.orange)),
           ),
           const Divider(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Padding(
-              padding: EdgeInsets.only(left: 10.0),
-              child: Icon(Icons.calendar_month_rounded, color: Colors.blueAccent),
+          Material(
+            color: Colors.transparent,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Padding(
+                padding: EdgeInsets.only(left: 10.0),
+                child: Icon(Icons.calendar_month_rounded, color: Colors.blueAccent),
+              ),
+              title: Text("Departure Date", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
+              subtitle: Text("${_travelDate.day}/${_travelDate.month}/${_travelDate.year}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
+              onTap: () async {
+                DateTime? picked = await showDatePicker(context: context, initialDate: _travelDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 60)));
+                if (picked != null) setState(() => _travelDate = picked);
+              },
             ),
-            title: Text("Departure Date", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
-            subtitle: Text("${_travelDate.day}/${_travelDate.month}/${_travelDate.year}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
-            onTap: () async {
-              DateTime? picked = await showDatePicker(context: context, initialDate: _travelDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 60)));
-              if (picked != null) setState(() => _travelDate = picked);
-            },
           ),
         ],
       ),

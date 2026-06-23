@@ -16,8 +16,10 @@ class DataPage extends StatefulWidget {
 
 class _DataPageState extends State<DataPage> {
   final _phoneCtrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
   String? _selectedNetwork;
   Map<String, dynamic>? _selectedPlan;
+  bool _obscurePin = true;
 
   static const _brand = Color(0xff0b845c);
 
@@ -39,11 +41,13 @@ class _DataPageState extends State<DataPage> {
   @override
   void dispose() {
     _phoneCtrl.dispose();
+    _pinCtrl.dispose();
     super.dispose();
   }
 
   void _submit() {
     final phone = _phoneCtrl.text.trim();
+    final pin = _pinCtrl.text.trim();
     if (phone.length < 11) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Enter a valid 11-digit number.')));
@@ -54,11 +58,17 @@ class _DataPageState extends State<DataPage> {
           .showSnackBar(const SnackBar(content: Text('Please select a data plan.')));
       return;
     }
+    if (pin.length != 6) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Enter your 6-digit transaction PIN.')));
+      return;
+    }
 
     context.read<VasBloc>().add(VasBuyData(
           phone: phone,
           network: _selectedNetwork!,
           planCode: _selectedPlan!['code'] as String,
+          transactionPin: pin,
         ));
   }
 
@@ -207,6 +217,43 @@ class _DataPageState extends State<DataPage> {
                     );
                   },
                 ),
+              const SizedBox(height: 20),
+
+              // PIN
+              _label('Transaction PIN'),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: TextField(
+                  controller: _pinCtrl,
+                  keyboardType: TextInputType.number,
+                  obscureText: _obscurePin,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                  style: TextStyle(fontSize: 15),
+                  decoration: InputDecoration(
+                    hintText: '******',
+                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePin ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.grey.shade500,
+                        size: 20,
+                      ),
+                      onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
 
               BlocBuilder<VasBloc, VasState>(

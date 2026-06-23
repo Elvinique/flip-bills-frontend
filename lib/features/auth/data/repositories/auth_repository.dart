@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/network/api_client.dart';
 
@@ -75,6 +76,36 @@ class AuthRepository {
     }
   }
 
+  // ── Set PIN ────────────────────────────────────────────────────────────────
+  
+  Future<Map<String, dynamic>> setPin({
+    required String pin,
+    required String confirmPin,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        '/api/v1/auth/set-pin',
+        data: {
+          'pin': pin,
+          'confirm_pin': confirmPin,
+        },
+        options: Options(contentType: 'application/json'),
+      );
+      final body = response.data as Map<String, dynamic>? ?? {};
+      return {
+        'success': true,
+        'message': body['message'] ?? 'PIN set successfully.',
+      };
+    } on DioException catch (e) {
+      log('SetPin DioException: ${e.response?.statusCode} ${e.response?.data}');
+      final msg = _extractErrorMessage(e, 'Failed to set PIN. Please try again.');
+      return {'success': false, 'message': msg};
+    } catch (e) {
+      log('SetPin error: $e');
+      return {'success': false, 'message': 'An unexpected error occurred.'};
+    }
+  }
+
   // ── Login ──────────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>?> login({
@@ -112,14 +143,23 @@ class AuthRepository {
 
   // ── Google Sign In ─────────────────────────────────────────────────────────
 
+  static final _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    serverClientId: '622203057988-rhc082l743lj22r4u6j9e6lo0fp5te2p.apps.googleusercontent.com',
+  );
+
   Future<Map<String, dynamic>?> googleSignIn() async {
     try {
-      final googleSignIn = GoogleSignIn();
-      final googleUser = await googleSignIn.signIn();
+      // Clear previous cached Google session to force the account picker dialog
+      await _googleSignIn.signOut();
+      
+      // v6 API: use constructor and signIn()
+      final googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
+        // User canceled the sign-in flow
         log('Google Sign-In canceled by user');
-        return {'success': false, 'message': 'Google Sign-In canceled.'};
+        return {'success': false, 'message': 'Google Sign-In canceled.', 'data': null};
       }
 
       final googleAuth = await googleUser.authentication;
@@ -127,11 +167,11 @@ class AuthRepository {
 
       if (idToken == null) {
         log('Failed to get Google idToken');
-        return {'success': false, 'message': 'Failed to retrieve Google authentication token.'};
+        return {'success': false, 'message': 'Failed to retrieve Google token. Try again.', 'data': null};
       }
 
       log('Google Sign-In success, sending token to backend');
-      
+
       final response = await _client.dio.post(
         '/api/v1/auth/google',
         data: {'id_token': idToken},
@@ -147,13 +187,21 @@ class AuthRepository {
         log('Google Login success — token saved in memory');
       }
       return response.data as Map<String, dynamic>;
+    } on PlatformException catch (e) {
+      // Handles cases like network_error, sign_in_failed, sign_in_canceled
+      log('Google Sign-In PlatformException: ${e.code} — ${e.message}');
+      if (e.code == 'sign_in_canceled') {
+        return {'success': false, 'message': 'Google Sign-In was canceled.', 'data': null};
+      }
+      return {'success': false, 'message': 'Google Sign-In failed: ${e.code} - ${e.message}', 'data': null};
     } on DioException catch (e) {
       log('Google Login DioException: ${e.response?.statusCode} ${e.response?.data}');
       final msg = _extractErrorMessage(e, 'Failed to authenticate with Google.');
       return {'success': false, 'message': msg, 'data': null};
     } catch (e) {
+      log('Google Login error TYPE: ${e.runtimeType}');
       log('Google Login error: $e');
-      return {'success': false, 'message': 'An unexpected error occurred.', 'data': null};
+      return {'success': false, 'message': 'Google error: $e', 'data': null};
     }
   }
 }

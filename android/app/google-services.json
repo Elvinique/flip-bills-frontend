@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "622203057988",
+    "project_id": "flip-bills",
+    "storage_bucket": "flip-bills.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622203057988:android:7a92bc98740895c2518911",
+        "android_client_info": {
+          "package_name": "com.flipbills.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "622203057988-7n0u85j0ied0reru3c5konae2sv2tsh0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.flipbills.app",
+            "certificate_hash": "659c6d0ed831cc06061e85d4ebd125a1a814cb58"
+          }
+        },
+        {
+          "client_id": "622203057988-rhc082l743lj22r4u6j9e6lo0fp5te2p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU9zfaCQVQnHGyZ2OqKQyHZWuJdgJooC0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "622203057988-rhc082l743lj22r4u6j9e6lo0fp5te2p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

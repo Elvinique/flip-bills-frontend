@@ -22,6 +22,8 @@ class ApiClient {
     ),
   );
 
+  // Use local backend for development with physical device
+  // static const String baseUrl = 'http://192.168.43.167:8080';
   static const String baseUrl = 'https://flip-bills-backend-production.up.railway.app';
 
   ApiClient._internal() {

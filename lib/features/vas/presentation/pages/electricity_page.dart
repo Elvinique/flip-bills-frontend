@@ -105,9 +105,11 @@ class ElectricityPage extends StatefulWidget {
 class _ElectricityPageState extends State<ElectricityPage> {
   final _meterCtrl  = TextEditingController();
   final _amountCtrl = TextEditingController();
+  final _pinCtrl    = TextEditingController();
 
   String? _selectedCode;
   String  _meterType = 'prepaid';
+  bool    _obscurePin = true;
 
   static const _brand   = Color(0xff0b845c);
   static const _amounts = [1000, 2000, 5000, 10000, 20000, 50000];
@@ -129,6 +131,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
   void dispose() {
     _meterCtrl.dispose();
     _amountCtrl.dispose();
+    _pinCtrl.dispose();
     super.dispose();
   }
 
@@ -136,6 +139,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
     final meter       = _meterCtrl.text.trim();
     final amountText  = _amountCtrl.text.trim().replaceAll(',', '');
     final amount      = int.tryParse(amountText);
+    final pin         = _pinCtrl.text.trim();
 
     if (meter.length < 10) {
       _err('Enter a valid meter number (at least 10 digits).');
@@ -149,12 +153,17 @@ class _ElectricityPageState extends State<ElectricityPage> {
       _err('Please select your distribution company.');
       return;
     }
+    if (pin.length != 6) {
+      _err('Enter your 6-digit transaction PIN.');
+      return;
+    }
 
     context.read<VasBloc>().add(VasPayElectricity(
       meterNumber: meter,
       disco: _selectedCode!,
       amountKobo: amount * 100,
       meterType: _meterType,
+      transactionPin: pin,
     ));
   }
 
@@ -526,6 +535,30 @@ class _ElectricityPageState extends State<ElectricityPage> {
                 formatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (_) => setState(() {}),
               ),
+              const SizedBox(height: 20),
+
+              // ── PIN ──────────────────────────────────────────────────────
+              _label('Transaction PIN'),
+              const SizedBox(height: 10),
+              _field(
+                controller: _pinCtrl,
+                hint: '******',
+                icon: Icons.lock_outline_rounded,
+                type: TextInputType.number,
+                isPassword: _obscurePin,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePin ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                ),
+                formatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+              ),
               const SizedBox(height: 32),
 
               // ── Submit ───────────────────────────────────────────────────
@@ -600,6 +633,8 @@ class _ElectricityPageState extends State<ElectricityPage> {
     required TextInputType type,
     List<TextInputFormatter>? formatters,
     ValueChanged<String>? onChanged,
+    bool isPassword = false,
+    Widget? suffixIcon,
   }) =>
       Container(
         decoration: BoxDecoration(
@@ -619,6 +654,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
                 keyboardType: type,
                 inputFormatters: formatters,
                 onChanged: onChanged,
+                obscureText: isPassword,
                 style: GoogleFonts.plusJakartaSans(fontSize: 15),
                 decoration: InputDecoration(
                   hintText: hint,
@@ -627,6 +663,7 @@ class _ElectricityPageState extends State<ElectricityPage> {
                   prefixText: prefix,
                   prefixStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 15, fontWeight: FontWeight.w600),
+                  suffixIcon: suffixIcon,
                   border: InputBorder.none,
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 16),

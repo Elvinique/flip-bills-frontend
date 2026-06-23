@@ -16,7 +16,9 @@ class BettingPage extends StatefulWidget {
 class _BettingPageState extends State<BettingPage> {
   final _customerIdCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
   String? _selectedProvider;
+  bool _obscurePin = true;
 
   static const _brand = Color(0xff0b845c);
   static const _amounts = [500, 1000, 2000, 5000, 10000, 20000];
@@ -42,6 +44,7 @@ class _BettingPageState extends State<BettingPage> {
   void dispose() {
     _customerIdCtrl.dispose();
     _amountCtrl.dispose();
+    _pinCtrl.dispose();
     super.dispose();
   }
 
@@ -49,6 +52,7 @@ class _BettingPageState extends State<BettingPage> {
     final id = _customerIdCtrl.text.trim();
     final amountText = _amountCtrl.text.trim().replaceAll(',', '');
     final amount = int.tryParse(amountText);
+    final pin = _pinCtrl.text.trim();
 
     if (id.isEmpty) {
       _err('Enter your betting account ID / username.');
@@ -62,6 +66,10 @@ class _BettingPageState extends State<BettingPage> {
       _err('Please select a betting platform.');
       return;
     }
+    if (pin.length != 6) {
+      _err('Enter your 6-digit transaction PIN.');
+      return;
+    }
 
     if (amount > 10000) {
       _showFrictionPrompt(amount);
@@ -72,6 +80,7 @@ class _BettingPageState extends State<BettingPage> {
           customerId: id,
           provider: _selectedProvider!,
           amountKobo: amount * 100,
+          transactionPin: pin,
         ));
   }
 
@@ -180,6 +189,7 @@ class _BettingPageState extends State<BettingPage> {
                           customerId: _customerIdCtrl.text.trim(),
                           provider: _selectedProvider!,
                           amountKobo: amount * 100,
+                          transactionPin: _pinCtrl.text.trim(),
                         ));
                       } : null,
                       icon: const Icon(Icons.fingerprint_rounded),
@@ -394,6 +404,29 @@ class _BettingPageState extends State<BettingPage> {
                 formatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (_) => setState(() {}),
               ),
+              const SizedBox(height: 20),
+
+              // PIN
+              _label('Transaction PIN'),
+              const SizedBox(height: 10),
+              _field(
+                controller: _pinCtrl,
+                hint: '******',
+                type: TextInputType.number,
+                isPassword: _obscurePin,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePin ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                ),
+                formatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+              ),
               const SizedBox(height: 32),
 
               BlocBuilder<VasBloc, VasState>(
@@ -452,6 +485,8 @@ class _BettingPageState extends State<BettingPage> {
     required TextInputType type,
     List<TextInputFormatter>? formatters,
     ValueChanged<String>? onChanged,
+    bool isPassword = false,
+    Widget? suffixIcon,
   }) =>
       Container(
         decoration: BoxDecoration(
@@ -464,6 +499,7 @@ class _BettingPageState extends State<BettingPage> {
           keyboardType: type,
           inputFormatters: formatters,
           onChanged: onChanged,
+          obscureText: isPassword,
           style: TextStyle(fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
@@ -472,6 +508,7 @@ class _BettingPageState extends State<BettingPage> {
             prefixText: prefix,
             prefixStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 15, fontWeight: FontWeight.w600),
+            suffixIcon: suffixIcon,
             border: InputBorder.none,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
